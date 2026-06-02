@@ -99,16 +99,14 @@ export default function SignupPage() {
         <div className="w-full max-w-sm">
           {/* Logo & Header */}
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-5">
-              <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center shadow-lg elevated-button">
-                <Image
-                  src="/icon-latest.png"
-                  alt="Selisih Berat"
-                  width={56}
-                  height={56}
-                  className="object-contain rounded-xl"
-                />
-              </div>
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/icon-latest.png"
+                alt="Selisih Berat"
+                width={62}
+                height={62}
+                className="object-contain"
+              />
             </div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
               Daftar Akun Baru
@@ -270,9 +268,18 @@ export default function SignupPage() {
           </div>
 
           {/* Footer */}
-          <p className="text-[10px] text-gray-400 text-center mt-8">
-            Audit Selisih Berat — J&T Express
-          </p>
+          <div className="mt-8 text-center space-y-2">
+            <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
+              <Link href="/" className="hover:text-gray-600 transition-colors">Beranda</Link>
+              <span className="text-gray-300">•</span>
+              <Link href="/login" className="hover:text-gray-600 transition-colors">Masuk</Link>
+              <span className="text-gray-300">•</span>
+              <span>Bantuan</span>
+            </div>
+            <p className="text-[10px] text-gray-400">
+              © {new Date().getFullYear()} Audit Selisih Berat — J&T Express
+            </p>
+          </div>
         </div>
       </div>
     </div>
