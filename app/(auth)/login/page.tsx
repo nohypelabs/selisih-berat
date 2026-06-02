@@ -73,8 +73,8 @@ export default function LoginPage() {
               <Image
                 src="/icon-latest.png"
                 alt="Selisih Berat"
-                width={62}
-                height={62}
+                width={186}
+                height={186}
                 className="object-contain"
               />
             </div>
