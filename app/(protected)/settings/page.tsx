@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { LogOut } from 'lucide-react'
 import { EarningsCalculator } from '@/components/earnings/earnings-calculator'
 import { useToast } from '@/components/ui/toast'
 import { formatRupiah } from '@/lib/utils/earnings'
@@ -119,13 +118,6 @@ export default function SettingsPage() {
     } finally {
       setSaving(false)
     }
-  }
-
-  const handleLogout = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('user')
-    router.push('/')
   }
 
   const handleReset = () => {
@@ -273,17 +265,6 @@ export default function SettingsPage() {
               </p>
             </div>
           </div>
-        </div>
-
-        {/* Logout */}
-        <div className="mt-3">
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg text-sm font-medium text-red-500 bg-red-50 hover:bg-red-100 active:bg-red-200 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Logout
-          </button>
         </div>
       </div>
     </div>
