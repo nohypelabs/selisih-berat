@@ -5,6 +5,7 @@ import { addWatermarkToImage } from '@/lib/utils/watermark'
 import { compressImage, validateImageFile } from '@/lib/utils/image-optimization'
 import type { LocationInfo } from '@/lib/types/entry'
 import Image from 'next/image'
+import { Camera, Image as ImageIcon, FileText, X, CheckCircle, AlertTriangle, Lightbulb, Cloud, Loader2, MapPin } from 'lucide-react'
 
 interface Props {
   onUpload: (urls: { foto_url_1: string; foto_url_2?: string }) => void
@@ -210,8 +211,9 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
     <div className="space-y-4">
       {/* Info about auto-rename */}
       {noResi && (
-        <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-          💡 Foto akan dinamai otomatis: <span className="font-mono font-semibold">{sanitizeFilename(noResi)}_foto1.jpg</span> dan <span className="font-mono font-semibold">{sanitizeFilename(noResi)}_foto2.jpg</span>
+        <div className="p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700 flex items-start gap-1.5">
+          <Lightbulb className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <span>Foto akan dinamai otomatis: <span className="font-mono font-semibold">{sanitizeFilename(noResi)}_foto1.jpg</span> dan <span className="font-mono font-semibold">{sanitizeFilename(noResi)}_foto2.jpg</span></span>
         </div>
       )}
 
@@ -223,8 +225,8 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
 
       {/* Photo 1 */}
       <div className="space-y-2">
-        <label className="block font-semibold text-gray-700">
-          📸 Foto 1 {required && <span className="text-red-500">*</span>}
+        <label className="block font-semibold text-gray-700 flex items-center gap-1.5">
+          <Camera className="w-4 h-4" /> Foto 1 {required && <span className="text-red-500">*</span>}
         </label>
 
         {/* Hidden file inputs */}
@@ -249,10 +251,10 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
             {uploading1 ? (
               <div className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg">
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
                   <span className="font-semibold">{uploadProgress1}</span>
                   {compressionInfo1 && (
-                    <span className="text-xs text-green-600">✅ {compressionInfo1}</span>
+                    <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {compressionInfo1}</span>
                   )}
                 </div>
               </div>
@@ -267,7 +269,7 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
                     disabled={!location || !noResi || noResi.trim() === ''}
                     className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="text-3xl">📷</span>
+                    <Camera className="w-8 h-8" />
                     <span className="font-medium text-sm">Kamera</span>
                   </button>
 
@@ -278,18 +280,18 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
                     disabled={!location || !noResi || noResi.trim() === ''}
                     className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="text-3xl">🖼️</span>
+                    <ImageIcon className="w-8 h-8" />
                     <span className="font-medium text-sm">Galeri</span>
                   </button>
                 </div>
 
                 {/* Warning messages */}
                 {!noResi || noResi.trim() === '' ? (
-                  <p className="text-xs text-red-500 text-center">⚠️ Isi No Resi terlebih dahulu</p>
+                  <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> Isi No Resi terlebih dahulu</p>
                 ) : !location ? (
-                  <p className="text-xs text-red-500 text-center">⚠️ Tunggu GPS tersedia</p>
+                  <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> Tunggu GPS tersedia</p>
                 ) : (
-                  <p className="text-xs text-gray-500 text-center">💡 Pilih kamera untuk foto baru atau galeri untuk foto yang sudah ada</p>
+                  <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3 h-3" /> Pilih kamera untuk foto baru atau galeri untuk foto yang sudah ada</p>
                 )}
               </>
             )}
@@ -304,13 +306,13 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
               className="rounded-lg"
             />
             {filename1 && (
-              <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded">
-                📝 {filename1}
+              <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                <FileText className="w-3 h-3" /> {filename1}
               </div>
             )}
             {compressionInfo1 && (
-              <div className="absolute bottom-2 left-2 right-2 bg-green-600 bg-opacity-90 text-white text-xs p-2 rounded">
-                ✅ Terkompresi: {compressionInfo1}
+              <div className="absolute bottom-2 left-2 right-2 bg-green-600 bg-opacity-90 text-white text-xs p-2 rounded flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Terkompresi: {compressionInfo1}
               </div>
             )}
             <button
@@ -324,7 +326,7 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
               }}
               className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
             >
-              ❌
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -332,8 +334,8 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
 
       {/* Photo 2 (Optional) */}
       <div className="space-y-2">
-        <label className="block font-semibold text-gray-700">
-          📸 Foto 2 (Opsional)
+        <label className="block font-semibold text-gray-700 flex items-center gap-1.5">
+          <Camera className="w-4 h-4" /> Foto 2 (Opsional)
         </label>
 
         {/* Hidden file inputs */}
@@ -358,10 +360,10 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
             {uploading2 ? (
               <div className="w-full p-8 border-2 border-dashed border-gray-300 rounded-lg">
                 <div className="flex flex-col items-center space-y-2">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                  <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
                   <span className="font-semibold">{uploadProgress2}</span>
                   {compressionInfo2 && (
-                    <span className="text-xs text-green-600">✅ {compressionInfo2}</span>
+                    <span className="text-xs text-green-600 flex items-center gap-1"><CheckCircle className="w-3 h-3" /> {compressionInfo2}</span>
                   )}
                 </div>
               </div>
@@ -376,7 +378,7 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
                     disabled={!location || !noResi || noResi.trim() === ''}
                     className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="text-3xl">📷</span>
+                    <Camera className="w-8 h-8" />
                     <span className="font-medium text-sm">Kamera</span>
                   </button>
 
@@ -387,18 +389,18 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
                     disabled={!location || !noResi || noResi.trim() === ''}
                     className="flex flex-col items-center justify-center gap-2 px-4 py-6 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="text-3xl">🖼️</span>
+                    <ImageIcon className="w-8 h-8" />
                     <span className="font-medium text-sm">Galeri</span>
                   </button>
                 </div>
 
                 {/* Warning messages */}
                 {!noResi || noResi.trim() === '' ? (
-                  <p className="text-xs text-red-500 text-center">⚠️ Isi No Resi terlebih dahulu</p>
+                  <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> Isi No Resi terlebih dahulu</p>
                 ) : !location ? (
-                  <p className="text-xs text-red-500 text-center">⚠️ Tunggu GPS tersedia</p>
+                  <p className="text-xs text-red-500 text-center flex items-center justify-center gap-1"><AlertTriangle className="w-3 h-3" /> Tunggu GPS tersedia</p>
                 ) : (
-                  <p className="text-xs text-gray-500 text-center">💡 Pilih kamera untuk foto baru atau galeri untuk foto yang sudah ada</p>
+                  <p className="text-xs text-gray-500 text-center flex items-center justify-center gap-1"><Lightbulb className="w-3 h-3" /> Pilih kamera untuk foto baru atau galeri untuk foto yang sudah ada</p>
                 )}
               </>
             )}
@@ -413,13 +415,13 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
               className="rounded-lg"
             />
             {filename2 && (
-              <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded">
-                📝 {filename2}
+              <div className="absolute top-2 left-2 bg-blue-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                <FileText className="w-3 h-3" /> {filename2}
               </div>
             )}
             {compressionInfo2 && (
-              <div className="absolute bottom-2 left-2 right-2 bg-green-600 bg-opacity-90 text-white text-xs p-2 rounded">
-                ✅ Terkompresi: {compressionInfo2}
+              <div className="absolute bottom-2 left-2 right-2 bg-green-600 bg-opacity-90 text-white text-xs p-2 rounded flex items-center gap-1">
+                <CheckCircle className="w-3 h-3" /> Terkompresi: {compressionInfo2}
               </div>
             )}
             <button
@@ -433,18 +435,18 @@ export function PhotoUpload({ onUpload, location, required = true, noResi }: Pro
               }}
               className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
             >
-              ❌
+              <X className="w-4 h-4" />
             </button>
           </div>
         )}
       </div>
 
       <div className="text-xs text-gray-500 space-y-1">
-        <p>• 📝 Foto dinamai otomatis berdasarkan No Resi untuk tracking mudah</p>
-        <p>• 🗜️ Foto otomatis dikompresi 80-90% (4MB → ~500KB) untuk upload cepat</p>
-        <p>• 📍 Watermark GPS dan timestamp ditambahkan otomatis</p>
-        <p>• 📸 Bisa ambil foto baru atau pilih dari galeri</p>
-        <p>• ☁️ Upload langsung ke Cloudinary (hemat bandwidth)</p>
+        <p className="flex items-center gap-1.5"><FileText className="w-3 h-3" /> Foto dinamai otomatis berdasarkan No Resi untuk tracking mudah</p>
+        <p className="flex items-center gap-1.5"><CheckCircle className="w-3 h-3" /> Foto otomatis dikompresi 80-90% (4MB → ~500KB) untuk upload cepat</p>
+        <p className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> Watermark GPS dan timestamp ditambahkan otomatis</p>
+        <p className="flex items-center gap-1.5"><Camera className="w-3 h-3" /> Bisa ambil foto baru atau pilih dari galeri</p>
+        <p className="flex items-center gap-1.5"><Cloud className="w-3 h-3" /> Upload langsung ke Cloudinary (hemat bandwidth)</p>
       </div>
     </div>
   )
