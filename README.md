@@ -1,6 +1,6 @@
 # Selisih Berat - J&T Express
 
-> Aplikasi pencatatan selisih berat untuk operasional logistik dengan manajemen data profesional dan tracking real-time
+> Aplikasi pencatatan selisih berat untuk operasional logistik dengan UI modern, earnings tracking, dan analytics real-time
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
@@ -10,25 +10,35 @@
 ## Features
 
 ### Core Features
-- **Weight Entry Management** - Record and track weight discrepancies with barcode scanning
-- **Real-time Dashboard** - Live statistics and analytics for operational insights
-- **Leaderboard System** - Gamified performance tracking for team members
-- **Photo Management** - Upload and manage proof photos with Cloudinary integration
-- **Data Management** - Comprehensive CRUD operations with export capabilities
-- **User Authentication** - Secure JWT-based authentication with role-based access
+- **Weight Entry Management** — Record and track weight discrepancies with barcode scanning
+- **Real-time Dashboard** — Live statistics, earnings chart (crypto portfolio style), and analytics
+- **Earnings System** — Per-entry rate + daily bonus, with period filter (1D/7D/30D/All)
+- **Leaderboard System** — Gamified performance tracking for team members
+- **Photo Management** — Upload and manage proof photos with Cloudinary integration
+- **Data Management** — Comprehensive CRUD operations with bulk actions and export (Excel/CSV)
+- **User Authentication** — Secure JWT-based authentication with role-based access
+
+### UI/UX Features
+- **Glassmorphism Design** — Transparent glass effects on sidebar and bottom navigation
+- **Mobile-First** — Optimized for mobile with bottom sheet modals and compact layouts
+- **Lucide Icons** — Consistent icon system across all pages
+- **Area Chart** — Earnings visualization with gradient fill (Binance portfolio style)
+- **Bottom Navigation** — Floating glass nav with scan barcode center button
+- **Top Bar** — App icon, page title, and settings access
+- **Compact Filters** — Inline filter bars on all data pages
 
 ### Technical Features
-- **Progressive Web App (PWA)** - Install and use offline
-- **Responsive Design** - Mobile-first approach for all device sizes
-- **Error Boundaries** - Graceful error handling with user-friendly messages
-- **Toast Notifications** - Real-time feedback with queue management
-- **Analytics Tracking** - Built-in analytics system (extensible to GA/Mixpanel)
-- **Type Safety** - Full TypeScript implementation
-- **Production Ready** - Comprehensive error handling, logging, and monitoring
+- **Progressive Web App (PWA)** — Install and use offline
+- **Responsive Design** — Mobile-first approach for all device sizes
+- **Error Boundaries** — Graceful error handling with user-friendly messages
+- **Toast Notifications** — Real-time feedback with queue management
+- **Type Safety** — Full TypeScript implementation
+- **GPS Integration** — Auto-location with retry on permission denial
+- **Image Optimization** — Auto-compression and watermark on photo upload
 
 ### User Roles
-- **User** - Entry creation, view dashboard, view leaderboard
-- **Admin** - All user features plus data management and photo management
+- **User** — Entry creation, view dashboard, view leaderboard, view earnings
+- **Admin** — All user features plus data management, photo management, settings
 
 ## Tech Stack
 
@@ -39,6 +49,9 @@
 - **Authentication:** JWT with bcryptjs
 - **Image Upload:** Cloudinary
 - **Barcode Scanner:** Quagga2
+- **Charts:** Recharts
+- **Icons:** Lucide React
+- **Animations:** Framer Motion
 - **File Processing:** XLSX, JSZip, PapaParse
 - **PWA:** next-pwa
 
@@ -46,7 +59,7 @@
 
 ### Prerequisites
 
-- Node.js 18+ and npm/yarn
+- Node.js 18+ and pnpm
 - Supabase account and project
 - Cloudinary account (for photo uploads)
 
@@ -55,12 +68,12 @@
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd selisih-berat
+   cd serat-qc
    ```
 
 2. **Install dependencies**
    ```bash
-   npm install
+   pnpm install
    ```
 
 3. **Set up environment variables**
@@ -71,47 +84,14 @@
 
 4. **Set up Supabase database**
 
-   Create the following tables in your Supabase project:
+   Create the required tables in your Supabase project (see `database/` folder for schema)
 
-   **users table:**
-   ```sql
-   create table users (
-     id uuid default uuid_generate_v4() primary key,
-     username text unique not null,
-     password text not null,
-     role text not null default 'user',
-     created_at timestamp with time zone default timezone('utc'::text, now()) not null
-   );
-   ```
-
-   **entries table:**
-   ```sql
-   create table entries (
-     id uuid default uuid_generate_v4() primary key,
-     user_id uuid references users(id) not null,
-     barcode text not null,
-     actual_weight decimal not null,
-     system_weight decimal not null,
-     difference decimal not null,
-     notes text,
-     photo_url text,
-     created_at timestamp with time zone default timezone('utc'::text, now()) not null
-   );
-   ```
-
-5. **Generate JWT secrets**
+5. **Run the development server**
    ```bash
-   # Generate secure random strings for JWT secrets
-   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
-   ```
-   Add these to your `.env.local` file
-
-6. **Run the development server**
-   ```bash
-   npm run dev
+   pnpm dev
    ```
 
-7. **Open your browser**
+6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Environment Variables
@@ -119,82 +99,95 @@
 See `.env.example` for a complete list. Key variables:
 
 ### Required
-- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon key
-- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
-- `JWT_SECRET` - Secret for JWT signing (min 32 chars)
-- `JWT_REFRESH_SECRET` - Secret for refresh token signing
-- `SESSION_SECRET` - Secret for session encryption
+- `NEXT_PUBLIC_SUPABASE_URL` — Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Your Supabase anon key
+- `SUPABASE_SERVICE_ROLE_KEY` — Your Supabase service role key
+- `JWT_SECRET` — Secret for JWT signing (min 32 chars)
+- `JWT_REFRESH_SECRET` — Secret for refresh token signing
 
 ### Optional
-- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` - For photo uploads
-- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` - Cloudinary preset
-- `NEXT_PUBLIC_ANALYTICS_ENABLED` - Enable analytics tracking
-- `NEXT_PUBLIC_GA_ID` - Google Analytics ID
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` — For photo uploads
+- `NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET` — Cloudinary preset
+- `NEXT_PUBLIC_CLOUDINARY_FOLDER` — Cloudinary folder name
 
 ## Project Structure
 
 ```
-selisih-berat/
+serat-qc/
 ├── app/
 │   ├── (auth)/              # Authentication routes
 │   │   ├── login/
 │   │   └── signup/
 │   ├── (protected)/         # Protected routes
-│   │   ├── dashboard/
-│   │   ├── entry/
-│   │   ├── leaderboard/
-│   │   ├── data-management/
-│   │   ├── foto-management/
-│   │   ├── error.tsx        # Protected routes error boundary
-│   │   └── loading.tsx      # Loading states
+│   │   ├── dashboard/       # Main dashboard with earnings chart
+│   │   ├── entry/           # Weight entry form
+│   │   ├── leaderboard/     # Performance rankings
+│   │   ├── my-entries/      # User's entry history
+│   │   ├── profile/         # User profile & logout
+│   │   ├── data-management/ # Admin: all entries management
+│   │   ├── foto-management/ # Admin: photo management
+│   │   ├── settings/        # Admin: earnings configuration
+│   │   └── changelog/       # Update history
 │   ├── api/                 # API routes
-│   │   ├── auth/
-│   │   ├── entries/
-│   │   ├── leaderboard/
-│   │   └── photos/
-│   ├── offline/             # Offline fallback page
-│   ├── error.tsx            # Global error boundary
-│   ├── not-found.tsx        # 404 page
-│   ├── layout.tsx           # Root layout
-│   └── globals.css          # Global styles
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── entries/         # Entry CRUD + stats
+│   │   ├── earnings/        # Earnings calculation with period filter
+│   │   ├── leaderboard/     # Leaderboard rankings
+│   │   ├── photos/          # Photo management
+│   │   ├── settings/        # Earnings settings
+│   │   └── users/           # User profile
+│   └── layout.tsx           # Root layout
 ├── components/
+│   ├── charts/              # Chart components
+│   ├── earnings/            # Earnings card & calculator
+│   ├── entry/               # Entry form components
+│   ├── modals/              # Detail & photo viewer modals
+│   ├── navigation/          # Top bar, sidebar, bottom nav
+│   ├── photos/              # Photo grid & filters
+│   ├── tables/              # Data tables
 │   └── ui/                  # Reusable UI components
-│       ├── toast.tsx
-│       └── button.tsx
 ├── lib/
-│   ├── config/
-│   │   └── env.ts           # Environment configuration
-│   └── analytics.ts         # Analytics tracking
+│   ├── middleware/           # Auth middleware
+│   ├── types/               # TypeScript types
+│   ├── utils/               # Utility functions
+│   └── supabase/            # Supabase client
 ├── public/
+│   ├── icon-latest.png      # App icon
 │   ├── manifest.json        # PWA manifest
-│   └── sw.js               # Service worker
-├── .env.example            # Environment template
-├── CHANGELOG.md            # Version history
-└── README.md              # This file
+│   └── sw.js                # Service worker
+└── database/                # Database schema & migrations
 ```
 
 ## API Endpoints
 
 ### Authentication
-- `POST /api/auth/signup` - Create new user
-- `POST /api/auth/login` - User login
-- `POST /api/auth/refresh` - Refresh access token
-- `POST /api/auth/change-password` - Change user password
+- `POST /api/auth/signup` — Create new user
+- `POST /api/auth/login` — User login
+- `POST /api/auth/refresh` — Refresh access token
+- `POST /api/auth/change-password` — Change user password
 
 ### Entries
-- `GET /api/entries` - List all entries (with pagination)
-- `POST /api/entries` - Create new entry
-- `GET /api/entries/[id]` - Get single entry
-- `PUT /api/entries/[id]` - Update entry
-- `DELETE /api/entries/[id]` - Delete entry
-- `GET /api/entries/stats` - Get entry statistics
+- `GET /api/entries` — List entries (with pagination & filters)
+- `POST /api/entries` — Create new entry
+- `GET /api/entries/[id]` — Get single entry
+- `DELETE /api/entries/[id]` — Delete entry
+- `GET /api/entries/stats` — Get entry statistics
+- `POST /api/entries/bulk-update` — Bulk status update
+- `POST /api/entries/bulk-delete` — Bulk delete
 
-### Leaderboard
-- `GET /api/leaderboard` - Get leaderboard rankings
+### Earnings
+- `GET /api/earnings/[username]` — Get user earnings (supports `?period=1d|7d|30d|all`)
+
+### Settings
+- `GET /api/settings` — Get earnings settings
+- `PUT /api/settings` — Update earnings settings
 
 ### Photos
-- `POST /api/photos` - Upload photo to Cloudinary
+- `GET /api/photos` — List photos with filters
+- `DELETE /api/photos` — Bulk delete photos
+
+### Leaderboard
+- `GET /api/leaderboard` — Get leaderboard rankings
 
 ## Deployment
 
@@ -207,61 +200,26 @@ selisih-berat/
 
 ### Manual Deployment
 
-1. **Build the application**
-   ```bash
-   npm run build
-   ```
-
-2. **Start production server**
-   ```bash
-   npm start
-   ```
-
-### Environment Setup for Production
-
-Ensure all required environment variables are set:
-- Set `NODE_ENV=production`
-- Use strong, unique secrets
-- Configure CORS allowed origins
-- Enable rate limiting
-- Set up analytics if needed
+```bash
+pnpm build
+pnpm start
+```
 
 ## Development
 
-### Run in development mode
 ```bash
-npm run dev
-```
-
-### Build for production
-```bash
-npm run build
-```
-
-### Run production build locally
-```bash
-npm run build && npm start
-```
-
-### Linting
-```bash
-npm run lint
+pnpm dev          # Development mode
+pnpm build        # Production build
+pnpm start        # Start production server
+pnpm lint         # Run linter
 ```
 
 ## PWA Features
 
-The application is a Progressive Web App with:
 - Offline support
 - Install to home screen
 - App shortcuts
-- Share target integration
 - Service worker caching
-
-To test PWA locally:
-```bash
-npm run build && npm start
-```
-Then open Chrome DevTools > Application > Service Workers
 
 ## Security
 
@@ -273,80 +231,6 @@ Then open Chrome DevTools > Application > Service Workers
 - SQL injection protection via Supabase
 - XSS protection via React
 
-## Troubleshooting
-
-### Build Errors
-
-**Problem:** TypeScript errors during build
-```bash
-# Clear Next.js cache
-rm -rf .next
-npm run build
-```
-
-**Problem:** Module not found errors
-```bash
-# Reinstall dependencies
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Runtime Errors
-
-**Problem:** Supabase connection fails
-- Check environment variables are set correctly
-- Verify Supabase project is active
-- Check network connectivity
-
-**Problem:** JWT errors
-- Ensure JWT_SECRET is at least 32 characters
-- Check token expiration settings
-- Clear localStorage and login again
-
-**Problem:** Photo upload fails
-- Verify Cloudinary credentials
-- Check upload preset settings
-- Ensure CORS is configured in Cloudinary
-
-### Development Issues
-
-**Problem:** Hot reload not working
-```bash
-# Restart dev server
-npm run dev
-```
-
-**Problem:** Port already in use
-```bash
-# Use different port
-PORT=3001 npm run dev
-```
-
-## Analytics
-
-Built-in console-based analytics tracks:
-- Page views
-- User actions
-- Errors
-- Performance metrics
-- Authentication events
-- Entry operations
-
-Extend with Google Analytics or Mixpanel by:
-1. Set `NEXT_PUBLIC_ANALYTICS_ENABLED=true`
-2. Add your analytics ID
-3. The system will automatically send events
-
-## Performance
-
-Optimizations implemented:
-- Image optimization with Next.js Image
-- Code splitting with dynamic imports
-- Lazy loading components
-- Service worker caching
-- Gzip compression
-- Minified CSS/JS
-
 ## Browser Support
 
 - Chrome/Edge (latest 2 versions)
@@ -354,30 +238,16 @@ Optimizations implemented:
 - Safari (latest 2 versions)
 - Mobile browsers (iOS Safari, Chrome Android)
 
-## Contributing
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
 ## License
 
 ISC License
 
-## Support
+## Developer
 
-For issues and questions:
-- Create an issue in the repository
-- Contact IT support team
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+Developed by [NoHypeLabs](https://nohypelabs.vercel.app)
 
 ---
 
-**Version:** 1.0.0
-**Last Updated:** November 2025
-**Maintained by:** J&T Express IT Team
+**Version:** 1.1.0
+**Last Updated:** June 2026
+**Maintained by:** NoHypeLabs
