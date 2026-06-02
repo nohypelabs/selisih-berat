@@ -148,7 +148,7 @@ export function MobileSidebar({
               onLogout()
               onClose()
             }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-500 hover:bg-red-50 hover:text-red-600 active:bg-red-100 transition-colors"
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span className="text-sm font-medium">Logout</span>

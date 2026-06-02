@@ -37,7 +37,7 @@ export default function ProtectedLayout({
     const userData = localStorage.getItem('user')
 
     if (!token) {
-      router.push('/login')
+      router.push('/')
     } else if (userData) {
       setUser(JSON.parse(userData))
     }
@@ -47,7 +47,7 @@ export default function ProtectedLayout({
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
-    router.push('/login')
+    router.push('/')
   }
 
   const navItems = [
@@ -141,7 +141,7 @@ export default function ProtectedLayout({
           )}
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span className="font-medium">Logout</span>
