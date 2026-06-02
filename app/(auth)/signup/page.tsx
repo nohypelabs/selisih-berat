@@ -269,13 +269,17 @@ export default function SignupPage() {
 
           {/* Footer */}
           <div className="mt-8 text-center space-y-2">
-            <div className="flex items-center justify-center gap-3 text-xs text-gray-400">
-              <Link href="/" className="hover:text-gray-600 transition-colors">Beranda</Link>
-              <span className="text-gray-300">•</span>
-              <Link href="/login" className="hover:text-gray-600 transition-colors">Masuk</Link>
-              <span className="text-gray-300">•</span>
-              <span>Bantuan</span>
-            </div>
+            <p className="text-xs text-gray-400">
+              Developed by{' '}
+              <a
+                href="https://nohypelabs.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary-500 hover:text-primary-600 font-semibold transition-colors"
+              >
+                NoHypeLabs
+              </a>
+            </p>
             <p className="text-[10px] text-gray-400">
               © {new Date().getFullYear()} Audit Selisih Berat — J&T Express
             </p>

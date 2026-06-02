@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { InstallPrompt } from '@/components/ui/install-prompt'
+import { Footer } from '@/components/ui/footer'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { MobileSidebar } from '@/components/navigation/mobile-sidebar'
 import { TopBar } from '@/components/navigation/top-bar'
@@ -147,6 +148,7 @@ export default function ProtectedLayout({
       {/* Main Content */}
       <div className="md:ml-60 pt-14 md:pt-0">
         {children}
+        <Footer />
       </div>
 
       {/* Mobile Bottom Nav */}
