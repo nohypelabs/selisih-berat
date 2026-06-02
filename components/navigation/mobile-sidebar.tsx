@@ -85,9 +85,7 @@ export function MobileSidebar({
         <div className="px-4 py-4 border-b border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-                <span className="text-white font-bold text-xs">SB</span>
-              </div>
+              <img src="/icon-latest.png" alt="SB" className="w-8 h-8 rounded-lg object-cover" />
               <div>
                 <h1 className="text-sm font-bold text-gray-900 leading-tight">Selisih Berat</h1>
                 <p className="text-[10px] text-gray-400">J&T Express</p>
