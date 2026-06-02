@@ -1,6 +1,6 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useState } from 'react'
 
 export interface Photo {
   id: string
@@ -30,6 +30,19 @@ const PhotoCard = memo(function PhotoCard({
   onPhotoClick: (photo: Photo) => void
   onPhotoSelect: (photoId: string, selected: boolean) => void
 }) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoading, setImageLoading] = useState(true)
+
+  const handleImageError = () => {
+    setImageError(true)
+    setImageLoading(false)
+  }
+
+  const handleImageLoad = () => {
+    setImageLoading(false)
+    setImageError(false)
+  }
+
   return (
     <div
       className={`relative group rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 ${
@@ -52,16 +65,32 @@ const PhotoCard = memo(function PhotoCard({
 
       {/* Photo */}
       <div
-        className="aspect-square cursor-pointer bg-gray-100"
-        onClick={() => onPhotoClick(photo)}
+        className="aspect-square cursor-pointer bg-gray-100 relative"
+        onClick={() => !imageError && onPhotoClick(photo)}
       >
-        <img
-          src={photo.thumbnail_url}
-          alt={photo.nama || 'Photo'}
-          loading="lazy"
-          crossOrigin="anonymous"
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-        />
+        {imageLoading && !imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        )}
+
+        {imageError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gray-200 text-gray-500">
+            <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="text-xs">Failed to load</span>
+          </div>
+        ) : (
+          <img
+            src={photo.thumbnail_url || photo.url}
+            alt={photo.nama || 'Photo'}
+            loading="lazy"
+            onError={handleImageError}
+            onLoad={handleImageLoad}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          />
+        )}
       </div>
 
       {/* Info Overlay */}

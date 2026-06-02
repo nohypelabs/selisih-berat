@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase/server'
 import { verifyAccessToken } from '@/lib/utils/jwt'
-import { deleteCloudinaryPhotos, extractPublicId } from '@/lib/utils/cloudinary'
+import { deleteCloudinaryPhotos, extractPublicId, optimizeCloudinaryUrl } from '@/lib/utils/cloudinary'
 
 /**
  * GET /api/photos - List photos with filters
@@ -310,14 +310,16 @@ export async function DELETE(request: NextRequest) {
 
 /**
  * Generate thumbnail URL with Cloudinary transformations
+ * Uses optimized settings for better quality and performance
  */
 function generateThumbnailUrl(url: string): string {
-  if (!url || !url.includes('cloudinary.com')) return url
+  if (!url) return ''
 
-  const parts = url.split('/upload/')
-  if (parts.length === 2) {
-    return `${parts[0]}/upload/w_300,h_300,c_fill,q_auto,f_auto/${parts[1]}`
-  }
-
-  return url
+  // Use the optimized Cloudinary utility with aggressive compression for thumbnails
+  return optimizeCloudinaryUrl(url, {
+    width: 300,
+    height: 300,
+    quality: 'auto:eco', // Most aggressive compression for thumbnails
+    format: 'auto' // Auto WebP/AVIF for better compression
+  })
 }
