@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import {
   BarChart3, Plus, FileText, User, Camera, Settings,
-  Database, LogOut
+  Database, LogOut, Sparkles
 } from 'lucide-react'
 
 interface NavItem {
@@ -28,6 +28,7 @@ const iconMap: Record<string, React.ReactNode> = {
   '➕': <Plus className="w-4 h-4" />,
   '📝': <FileText className="w-4 h-4" />,
   '👤': <User className="w-4 h-4" />,
+  '✨': <Sparkles className="w-4 h-4" />,
   '📸': <Camera className="w-4 h-4" />,
   '⚙️': <Settings className="w-4 h-4" />,
   '📋': <Database className="w-4 h-4" />,

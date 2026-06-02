@@ -9,7 +9,7 @@ import { MobileSidebar } from '@/components/navigation/mobile-sidebar'
 import { TopBar } from '@/components/navigation/top-bar'
 import {
   Plus, BarChart3, Trophy, FileText, User, Camera, Settings,
-  Database, LogOut
+  Database, LogOut, Sparkles
 } from 'lucide-react'
 
 const sidebarIconMap: Record<string, React.ReactNode> = {
@@ -18,6 +18,7 @@ const sidebarIconMap: Record<string, React.ReactNode> = {
   '🏆': <Trophy className="w-5 h-5" />,
   '📝': <FileText className="w-5 h-5" />,
   '👤': <User className="w-5 h-5" />,
+  '✨': <Sparkles className="w-5 h-5" />,
   '📋': <Database className="w-5 h-5" />,
   '📸': <Camera className="w-5 h-5" />,
   '⚙️': <Settings className="w-5 h-5" />,
@@ -57,6 +58,7 @@ export default function ProtectedLayout({
     { href: '/leaderboard', label: 'Leaderboard', icon: '🏆', roles: ['user', 'admin'] },
     { href: '/my-entries', label: 'My Entries', icon: '📝', roles: ['user'] },
     { href: '/profile', label: 'Profile', icon: '👤', roles: ['user', 'admin'] },
+    { href: '/changelog', label: 'Updates', icon: '✨', roles: ['user', 'admin'] },
     { href: '/data-management', label: 'Data Management', icon: '📋', roles: ['admin'] },
     { href: '/foto-management', label: 'Foto Management', icon: '📸', roles: ['admin'] },
     { href: '/settings', label: 'Settings', icon: '⚙️', roles: ['admin'] },
