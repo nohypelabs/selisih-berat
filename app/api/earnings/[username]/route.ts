@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/middleware/auth'
 import { supabaseAdmin } from '@/lib/supabase/server'
 
 /**
- * GET /api/earnings/[username] - Get user earnings
+ * GET /api/earnings/[username] - Get user earnings with period filter
  */
 export const GET = withAuth(async (request, { params, user }) => {
   try {
@@ -30,171 +30,84 @@ export const GET = withAuth(async (request, { params, user }) => {
       startDate = now.toISOString()
     }
 
-    // Try database function first (OPTIMIZED!)
-    let earningsData = null
-    const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('calculate_user_earnings', {
-      p_username: username
-    })
+    // Get settings for rates
+    const { data: settingsData } = await supabaseAdmin
+      .from('settings')
+      .select('key, value')
+      .in('key', ['rate_per_entry', 'daily_bonus'])
 
-    if (rpcError) {
-      console.error('Calculate earnings RPC error:', rpcError)
-      console.log('Falling back to direct calculation...')
+    const settingsMap = (settingsData || []).reduce((acc, setting) => {
+      acc[setting.key] = setting.value
+      return acc
+    }, {} as Record<string, string>)
 
-      // FALLBACK: Manual calculation from user_statistics table
-      const { data: userStats, error: statsError } = await supabaseAdmin
-        .from('user_statistics')
-        .select('*')
-        .eq('username', username)
-        .single()
+    const ratePerEntry = settingsMap.rate_per_entry ? parseInt(settingsMap.rate_per_entry) : 500
+    const dailyBonus = settingsMap.daily_bonus ? parseInt(settingsMap.daily_bonus) : 50000
 
-      if (statsError || !userStats) {
-        console.error('User statistics error:', statsError)
+    // Query entries with period filter
+    let entriesQuery = supabaseAdmin
+      .from('entries')
+      .select('created_at')
+      .eq('created_by', username)
+      .order('created_at', { ascending: true })
 
-        // Return default empty earnings
-        return NextResponse.json({
-          success: true,
-          data: {
-            total_entries: 0,
-            days_with_entries: 0,
-            rate_per_entry: 500,
-            daily_bonus: 50000,
-            entries_earnings: 0,
-            bonus_earnings: 0,
-            total_earnings: 0
-          }
-        })
-      }
-
-      // Get current settings for rates from settings table
-      const { data: settingsData } = await supabaseAdmin
-        .from('settings')
-        .select('key, value')
-        .in('key', ['rate_per_entry', 'daily_bonus'])
-
-      // Parse settings into object
-      const settingsMap = (settingsData || []).reduce((acc, setting) => {
-        acc[setting.key] = setting.value
-        return acc
-      }, {} as Record<string, string>)
-
-      const ratePerEntry = settingsMap.rate_per_entry ? parseInt(settingsMap.rate_per_entry) : 500
-      const dailyBonus = settingsMap.daily_bonus ? parseInt(settingsMap.daily_bonus) : 50000
-
-      // Calculate earnings manually (with period filter)
-      let totalEntries = userStats.total_entries || 0
-      if (startDate) {
-        // Count entries within period
-        const { count } = await supabaseAdmin
-          .from('entries')
-          .select('*', { count: 'exact', head: true })
-          .eq('created_by', username)
-          .gte('created_at', startDate)
-        totalEntries = count || 0
-      }
-
-      // Count distinct days from entries table (with period filter)
-      let entriesQuery = supabaseAdmin
-        .from('entries')
-        .select('created_at')
-        .eq('created_by', username)
-
-      if (startDate) {
-        entriesQuery = entriesQuery.gte('created_at', startDate)
-      }
-
-      const { data: entriesData } = await entriesQuery
-
-      // Count unique dates
-      const uniqueDates = new Set(
-        (entriesData || []).map(entry =>
-          new Date(entry.created_at || '').toISOString().split('T')[0]
-        )
-      )
-      const daysWithEntries = uniqueDates.size
-
-      const entriesEarnings = totalEntries * ratePerEntry
-      const bonusEarnings = daysWithEntries * dailyBonus
-      const totalEarnings = entriesEarnings + bonusEarnings
-
-      earningsData = {
-        total_entries: totalEntries,
-        days_with_entries: daysWithEntries,
-        rate_per_entry: ratePerEntry,
-        daily_bonus: dailyBonus,
-        entries_earnings: entriesEarnings,
-        bonus_earnings: bonusEarnings,
-        total_earnings: totalEarnings
-      }
-    } else {
-      // Use RPC data
-      if (!rpcData || rpcData.length === 0) {
-        return NextResponse.json({
-          success: true,
-          data: {
-            total_entries: 0,
-            days_with_entries: 0,
-            rate_per_entry: 500,
-            daily_bonus: 50000,
-            entries_earnings: 0,
-            bonus_earnings: 0,
-            total_earnings: 0
-          }
-        })
-      }
-
-      const earnings = rpcData[0]
-      earningsData = {
-        total_entries: earnings.total_entries,
-        days_with_entries: earnings.days_with_entries,
-        rate_per_entry: earnings.rate_per_entry,
-        daily_bonus: earnings.daily_bonus,
-        entries_earnings: earnings.entries_earnings,
-        bonus_earnings: earnings.bonus_earnings,
-        total_earnings: earnings.total_earnings
-      }
+    if (startDate) {
+      entriesQuery = entriesQuery.gte('created_at', startDate)
     }
 
-    // Get chart data — daily earnings breakdown
+    const { data: entriesData, error: entriesError } = await entriesQuery
+
+    if (entriesError) {
+      console.error('Entries query error:', entriesError)
+    }
+
+    // Count entries
+    const totalEntries = entriesData?.length || 0
+
+    // Count unique days
+    const uniqueDates = new Set(
+      (entriesData || []).map(entry =>
+        new Date(entry.created_at || '').toISOString().split('T')[0]
+      )
+    )
+    const daysWithEntries = uniqueDates.size
+
+    // Calculate earnings
+    const entriesEarnings = totalEntries * ratePerEntry
+    const bonusEarnings = daysWithEntries * dailyBonus
+    const totalEarnings = entriesEarnings + bonusEarnings
+
+    const earningsData = {
+      total_entries: totalEntries,
+      days_with_entries: daysWithEntries,
+      rate_per_entry: ratePerEntry,
+      daily_bonus: dailyBonus,
+      entries_earnings: entriesEarnings,
+      bonus_earnings: bonusEarnings,
+      total_earnings: totalEarnings
+    }
+
+    // Build chart data — daily earnings breakdown
     let chartData: { date: string; earnings: number; entries: number }[] = []
-    try {
-      let chartQuery = supabaseAdmin
-        .from('entries')
-        .select('created_at')
-        .eq('created_by', username)
-        .order('created_at', { ascending: true })
+    if (entriesData && entriesData.length > 0) {
+      // Group by date
+      const dailyMap = new Map<string, number>()
+      entriesData.forEach(entry => {
+        const date = new Date(entry.created_at || '').toISOString().split('T')[0]
+        dailyMap.set(date, (dailyMap.get(date) || 0) + 1)
+      })
 
-      if (startDate) {
-        chartQuery = chartQuery.gte('created_at', startDate)
-      }
-
-      const { data: chartEntries } = await chartQuery
-
-      if (chartEntries && chartEntries.length > 0) {
-        // Group by date
-        const dailyMap = new Map<string, number>()
-        chartEntries.forEach(entry => {
-          const date = new Date(entry.created_at || '').toISOString().split('T')[0]
-          dailyMap.set(date, (dailyMap.get(date) || 0) + 1)
-        })
-
-        // Get settings for rate
-        const ratePerEntry = earningsData?.rate_per_entry || 500
-        const dailyBonus = earningsData?.daily_bonus || 50000
-
-        // Build chart data with cumulative earnings
-        let cumulative = 0
-        chartData = Array.from(dailyMap.entries()).map(([date, count]) => {
-          const dayEarnings = (count * ratePerEntry) + dailyBonus
-          cumulative += dayEarnings
-          return {
-            date,
-            earnings: cumulative,
-            entries: count
-          }
-        })
-      }
-    } catch (chartErr) {
-      console.error('Chart data error:', chartErr)
+      // Build chart data with cumulative earnings
+      let cumulative = 0
+      chartData = Array.from(dailyMap.entries()).map(([date, count]) => {
+        const dayEarnings = (count * ratePerEntry) + dailyBonus
+        cumulative += dayEarnings
+        return {
+          date,
+          earnings: cumulative,
+          entries: count
+        }
+      })
     }
 
     return NextResponse.json({
