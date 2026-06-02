@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
 import { PhotoGrid, Photo } from '@/components/photos/photo-grid'
 import { PhotoModal } from '@/components/photos/photo-modal'
 import { PhotoFiltersComponent, PhotoFilters } from '@/components/photos/photo-filters'
 import { BulkActions } from '@/components/photos/bulk-actions'
 import { downloadPhotosAsZipBatched, formatBytes } from '@/lib/utils/zip'
 import { useToast } from '@/components/ui/toast'
+import {
+  Camera, Image as ImageIcon, CheckSquare, Upload, HardDrive,
+  ChevronLeft, ChevronRight, XCircle, Loader2, Download
+} from 'lucide-react'
 
 interface Stats {
   totalPhotos: number
@@ -255,85 +258,97 @@ export default function FotoManagementPage() {
 
   if (loading && photos.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">📸 Photo Management</h1>
-
-          {/* Stats Skeleton */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
-
-          {/* Grid Skeleton */}
-          <Card>
-            <div className="p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                {[...Array(12)].map((_, i) => (
-                  <div key={i} className="aspect-square bg-gray-200 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-            </div>
-          </Card>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">📸 Photo Management</h1>
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-4 py-4 max-w-lg mx-auto">
+
+        {/* Header */}
+        <div className="mb-4">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Camera className="w-5 h-5 text-gray-600" />
+            Foto Management
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">Kelola foto yang sudah diupload</p>
+        </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <div className="p-6">
-              <div className="text-sm font-medium text-gray-600 mb-1">Total Photos</div>
-              <div className="text-2xl font-bold text-gray-900">{stats.totalPhotos.toLocaleString()}</div>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                <ImageIcon className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400">Total Foto</p>
+                <p className="text-xl font-bold text-gray-900">{stats.totalPhotos.toLocaleString()}</p>
+              </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="p-6">
-              <div className="text-sm font-medium text-gray-600 mb-1">Selected</div>
-              <div className="text-2xl font-bold text-primary-600">{selectedPhotos.size}</div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                <CheckSquare className="w-5 h-5 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400">Dipilih</p>
+                <p className="text-xl font-bold text-primary-600">{selectedPhotos.size}</p>
+              </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="p-6">
-              <div className="text-sm font-medium text-gray-600 mb-1">Uploaded Today</div>
-              <div className="text-2xl font-bold text-green-600">{stats.uploadedToday}</div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <Upload className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400">Upload Hari Ini</p>
+                <p className="text-xl font-bold text-green-600">{stats.uploadedToday}</p>
+              </div>
             </div>
-          </Card>
+          </div>
 
-          <Card>
-            <div className="p-6">
-              <div className="text-sm font-medium text-gray-600 mb-1">Estimated Size</div>
-              <div className="text-2xl font-bold text-blue-600">{formatBytes(stats.estimatedSize)}</div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+                <HardDrive className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400">Estimasi Size</p>
+                <p className="text-xl font-bold text-amber-600">{formatBytes(stats.estimatedSize)}</p>
+              </div>
             </div>
-          </Card>
+          </div>
         </div>
 
         {/* Filters */}
-        <PhotoFiltersComponent onFilterChange={handleFilterChange} onReset={handleFilterReset} />
+        <div className="mb-4">
+          <PhotoFiltersComponent onFilterChange={handleFilterChange} onReset={handleFilterReset} />
+        </div>
 
         {/* Bulk Actions */}
-        <BulkActions
-          selectedCount={selectedPhotos.size}
-          totalCount={photos.length}
-          onSelectAll={handleSelectAll}
-          onUnselectAll={handleUnselectAll}
-          onDownloadZip={handleDownloadZip}
-          onDeleteSelected={handleDeleteSelected}
-          isProcessing={isProcessing}
-        />
+        <div className="mb-4">
+          <BulkActions
+            selectedCount={selectedPhotos.size}
+            totalCount={photos.length}
+            onSelectAll={handleSelectAll}
+            onUnselectAll={handleUnselectAll}
+            onDownloadZip={handleDownloadZip}
+            onDeleteSelected={handleDeleteSelected}
+            isProcessing={isProcessing}
+          />
+        </div>
 
         {/* Photo Grid */}
-        <Card className="mb-6">
-          <div className="p-6">
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+          <div className="p-3">
             <PhotoGrid
               photos={photos}
               selectedPhotos={selectedPhotos}
@@ -341,57 +356,55 @@ export default function FotoManagementPage() {
               onPhotoSelect={handlePhotoSelect}
             />
           </div>
-        </Card>
+        </div>
 
         {/* Pagination */}
         {pagination.totalPages > 1 && (
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} -{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} entries
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handlePageChange(pagination.page - 1)}
-                    disabled={pagination.page === 1}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-
-                  <div className="flex gap-1">
-                    {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
-                      const pageNum = i + 1
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className={`px-4 py-2 rounded-lg ${
-                            pagination.page === pageNum
-                              ? 'bg-primary-600 text-white'
-                              : 'border border-gray-300 hover:bg-gray-50'
-                          }`}
-                        >
-                          {pageNum}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <button
-                    onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
-                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-gray-500">
+                Menampilkan {(pagination.page - 1) * pagination.limit + 1} -{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} dari {pagination.total}
+              </p>
             </div>
-          </Card>
+
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-600" />
+              </button>
+
+              <div className="flex gap-1">
+                {[...Array(Math.min(5, pagination.totalPages))].map((_, i) => {
+                  const pageNum = i + 1
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`w-9 h-9 rounded-full text-xs font-medium transition-colors ${
+                        pagination.page === pageNum
+                          ? 'bg-primary-600 text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.totalPages}
+                className="w-9 h-9 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -412,30 +425,37 @@ export default function FotoManagementPage() {
 
       {/* Download Progress Modal */}
       {downloadProgress.show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <Card className="w-full max-w-md">
-            <div className="p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Downloading Photos...</h3>
-
-              <div className="mb-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>
-                    {downloadProgress.current} / {downloadProgress.total}
-                  </span>
-                  <span>{downloadProgress.percentage}%</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden">
+            <div className="p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                  <Download className="w-5 h-5 text-primary-600" />
                 </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                  <div
-                    className="bg-primary-600 h-full transition-all duration-300"
-                    style={{ width: `${downloadProgress.percentage}%` }}
-                  ></div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900">Downloading...</h3>
+                  <p className="text-xs text-gray-500">
+                    {downloadProgress.current} / {downloadProgress.total} foto
+                  </p>
                 </div>
               </div>
 
-              <p className="text-sm text-gray-600 truncate">{downloadProgress.message}</p>
+              <div className="mb-3">
+                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                  <span>Progress</span>
+                  <span className="font-medium">{downloadProgress.percentage}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div
+                    className="bg-primary-600 h-full rounded-full transition-all duration-300"
+                    style={{ width: `${downloadProgress.percentage}%` }}
+                  />
+                </div>
+              </div>
+
+              <p className="text-[10px] text-gray-400 truncate">{downloadProgress.message}</p>
             </div>
-          </Card>
+          </div>
         </div>
       )}
     </div>
