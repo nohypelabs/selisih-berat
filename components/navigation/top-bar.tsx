@@ -1,30 +1,14 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { Settings } from 'lucide-react'
 
 interface TopBarProps {
   onMenuClick: () => void
 }
 
-// Map pathname to page title
-const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/entry': 'Entry',
-  '/leaderboard': 'Leaderboard',
-  '/my-entries': 'My Entries',
-  '/profile': 'Profile',
-  '/data-management': 'Data Management',
-  '/foto-management': 'Foto Management',
-  '/settings': 'Settings',
-}
-
 export function TopBar({ onMenuClick }: TopBarProps) {
-  const pathname = usePathname()
   const router = useRouter()
-
-  // Get page title from pathname
-  const pageTitle = pageTitles[pathname] || 'Selisih Berat'
 
   return (
     <header className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
@@ -42,8 +26,8 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           />
         </button>
 
-        {/* Center: Page Title */}
-        <h1 className="text-base font-bold text-gray-900">{pageTitle}</h1>
+        {/* Center: App Name */}
+        <h1 className="text-base font-bold text-gray-900">Audit Serat BDG777</h1>
 
         {/* Right: Settings */}
         <button
