@@ -194,9 +194,6 @@ export default function EntryPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
 
-            {/* Location Display */}
-            <LocationDisplay onLocationFetched={setLocation} />
-
             {/* No Resi with Scanner */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">
@@ -406,6 +403,9 @@ export default function EntryPage() {
                 </>
               )}
             </button>
+
+            {/* Location Display — below submit for cleaner top section */}
+            <LocationDisplay onLocationFetched={setLocation} />
           </form>
         </div>
       </div>
