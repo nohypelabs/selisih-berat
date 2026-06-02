@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { EarningsCalculator } from '@/components/earnings/earnings-calculator'
 import { useToast } from '@/components/ui/toast'
 import { formatRupiah } from '@/lib/utils/earnings'
+import { Settings, DollarSign, Gift, ToggleLeft, Info, AlertTriangle, RotateCcw, Save, Loader2 } from 'lucide-react'
 
 interface EarningsSettings {
   rate_per_entry: number
@@ -111,7 +111,7 @@ export default function SettingsPage() {
       }
 
       setSettings(data.data)
-      showToast('Settings updated successfully! User earnings will be recalculated.', 'success')
+      showToast('Settings berhasil disimpan!', 'success')
     } catch (error: any) {
       console.error('Error saving settings:', error)
       showToast(error.message || 'Failed to save settings', 'error')
@@ -125,46 +125,42 @@ export default function SettingsPage() {
       setRatePerEntry(settings.rate_per_entry)
       setDailyBonus(settings.daily_bonus)
       setEnabled(settings.enabled)
-      showToast('Settings reset to saved values', 'info')
+      showToast('Settings direset ke nilai tersimpan', 'info')
     }
   }
 
   if (loading) {
     return (
-      <div className="p-3 pb-16">
-        <div className="max-w-4xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-1/3 mb-3"></div>
-            <div className="card-mobile mb-3">
-              <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
-              <div className="space-y-3">
-                <div className="h-8 bg-gray-200 rounded"></div>
-                <div className="h-8 bg-gray-200 rounded"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="p-3 pb-16">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-4 py-4 max-w-lg mx-auto">
+
         {/* Header */}
-        <div className="mb-3">
-          <h1 className="text-lg font-bold text-gray-900">⚙️ Settings</h1>
-          <p className="text-xs text-gray-600 mt-0.5">Configure earnings rates</p>
+        <div className="mb-4">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Settings className="w-5 h-5 text-gray-600" />
+            Settings
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">Konfigurasi rate earnings</p>
         </div>
 
-        {/* Earnings Settings */}
-        <div className="card-mobile mb-3">
-          <h2 className="text-base font-semibold text-gray-800 mb-3">💰 Earnings Configuration</h2>
+        {/* Earnings Configuration Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-50">
+            <h2 className="text-sm font-semibold text-gray-900">Earnings Configuration</h2>
+          </div>
 
-          <div className="space-y-3">
+          <div className="p-4 space-y-4">
             {/* Rate per Entry */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-gray-400" />
                 Rate per Entry (Rp.)
               </label>
               <input
@@ -172,17 +168,18 @@ export default function SettingsPage() {
                 min="0"
                 value={ratePerEntry}
                 onChange={(e) => setRatePerEntry(parseInt(e.target.value) || 0)}
-                className="input-mobile"
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                 placeholder="500"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">
-                Current: {formatRupiah(ratePerEntry)}
+              <p className="text-[10px] text-gray-400 mt-1">
+                Saat ini: {formatRupiah(ratePerEntry)}
               </p>
             </div>
 
             {/* Daily Bonus */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-gray-700 mb-1.5">
+                <Gift className="w-3.5 h-3.5 text-gray-400" />
                 Daily Bonus (Rp.)
               </label>
               <input
@@ -190,61 +187,76 @@ export default function SettingsPage() {
                 min="0"
                 value={dailyBonus}
                 onChange={(e) => setDailyBonus(parseInt(e.target.value) || 0)}
-                className="input-mobile"
+                className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
                 placeholder="50000"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">
-                Current: {formatRupiah(dailyBonus)}
+              <p className="text-[10px] text-gray-400 mt-1">
+                Saat ini: {formatRupiah(dailyBonus)}
               </p>
             </div>
 
-            {/* Enable/Disable */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="enabled"
-                checked={enabled}
-                onChange={(e) => setEnabled(e.target.checked)}
-                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
-              />
-              <label htmlFor="enabled" className="text-xs font-medium text-gray-700">
-                Enable earnings system
-              </label>
+            {/* Enable/Disable Toggle */}
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+              <div className="flex items-center gap-2">
+                <ToggleLeft className="w-4 h-4 text-gray-500" />
+                <span className="text-xs font-medium text-gray-700">Earnings System</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEnabled(!enabled)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  enabled ? 'bg-primary-600' : 'bg-gray-300'
+                }`}
+              >
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  enabled ? 'translate-x-5' : 'translate-x-0'
+                }`} />
+              </button>
             </div>
 
             {/* Info Box */}
-            <div className="mt-3 p-2 bg-blue-50 border-l-2 border-blue-500 rounded">
-              <div className="flex items-start">
-                <svg className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-                <div className="ml-2">
+            <div className="p-3 bg-blue-50 rounded-xl">
+              <div className="flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                <div>
                   <h3 className="text-xs font-medium text-blue-800">Formula</h3>
-                  <div className="mt-1 text-[10px] text-blue-700">
-                    <p>Total = (Entries × Rate) + (Days × Bonus)</p>
-                    <p className="mt-0.5">Ex: 100 entries in 5 days = {formatRupiah((100 * ratePerEntry) + (5 * dailyBonus))}</p>
-                  </div>
+                  <p className="text-[10px] text-blue-600 mt-0.5">
+                    Total = (Entries × Rate) + (Days × Bonus)
+                  </p>
+                  <p className="text-[10px] text-blue-500 mt-0.5">
+                    Contoh: 100 entries dalam 5 hari = {formatRupiah((100 * ratePerEntry) + (5 * dailyBonus))}
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-2 pt-2">
-              <Button
+            <div className="flex gap-2 pt-1">
+              <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 text-sm"
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {saving ? 'Saving...' : 'Save'}
-              </Button>
-              <Button
+                {saving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Simpan
+                  </>
+                )}
+              </button>
+              <button
                 onClick={handleReset}
-                variant="outline"
                 disabled={saving}
-                className="text-sm"
+                className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center gap-1.5"
               >
+                <RotateCcw className="w-3.5 h-3.5" />
                 Reset
-              </Button>
+              </button>
             </div>
           </div>
         </div>
@@ -253,15 +265,13 @@ export default function SettingsPage() {
         <EarningsCalculator defaultRate={ratePerEntry} defaultBonus={dailyBonus} />
 
         {/* Warning */}
-        <div className="mt-3 p-2 bg-yellow-50 border-l-2 border-yellow-500 rounded">
-          <div className="flex items-start">
-            <svg className="h-4 w-4 text-yellow-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-            <div className="ml-2">
-              <h3 className="text-xs font-medium text-yellow-800">Important</h3>
-              <p className="mt-0.5 text-[10px] text-yellow-700">
-                Changing settings will recalculate all user earnings.
+        <div className="mt-4 p-3 bg-yellow-50 rounded-xl">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="text-xs font-medium text-yellow-800">Perhatian</h3>
+              <p className="text-[10px] text-yellow-600 mt-0.5">
+                Mengubah settings akan menghitung ulang semua earnings user.
               </p>
             </div>
           </div>
