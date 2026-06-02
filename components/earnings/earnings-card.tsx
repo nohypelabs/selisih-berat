@@ -58,7 +58,7 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
   const [chartData, setChartData] = useState<ChartPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [period, setPeriod] = useState<Period>('1d')
+  const [period, setPeriod] = useState<Period>('7d')
 
   useEffect(() => {
     fetchEarnings()
@@ -166,8 +166,8 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
         </p>
       </div>
 
-      {/* Chart */}
-      {chartData.length > 1 && (
+      {/* Chart — only show for 7d+ */}
+      {period !== '1d' && chartData.length > 1 && (
         <div className="px-2 pb-2">
           <div className="h-28">
             <ResponsiveContainer width="100%" height="100%">
