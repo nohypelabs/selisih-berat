@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/toast'
+import { User, Mail, Shield, Calendar, Edit3, LogOut, ChevronRight, Lock } from 'lucide-react'
 
 interface UserProfile {
   username: string
@@ -109,129 +108,178 @@ export default function ProfilePage() {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('user')
+    router.push('/')
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-20">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="px-3 py-3 max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="mb-3">
-          <h1 className="text-lg font-bold text-gray-900">👤 Profil Saya</h1>
-          <p className="text-xs text-gray-600">Kelola informasi akun Anda</p>
-        </div>
+  const initial = (profile?.full_name || profile?.username || 'U').charAt(0).toUpperCase()
 
+  return (
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-4 py-4 max-w-lg mx-auto">
+
+        {/* Profile Header Card */}
         {profile && (
-          <div className="space-y-3">
-            {/* Profile Info Card */}
-            <Card className="p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-semibold text-gray-900">Informasi Akun</h2>
-                {!editMode && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditMode(true)}
-                  >
-                    ✏️ Edit
-                  </Button>
-                )}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
+            <div className="flex items-center gap-4">
+              {/* Avatar */}
+              <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
+                <span className="text-2xl font-bold text-white">{initial}</span>
               </div>
 
-              {editMode ? (
-                <form onSubmit={handleUpdate} className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Username
-                    </label>
-                    <input
-                      type="text"
-                      value={profile.username}
-                      disabled
-                      className="w-full px-3 py-2 text-sm bg-gray-100 border border-gray-300 rounded-lg cursor-not-allowed"
-                    />
-                    <p className="text-[10px] text-gray-500 mt-1">Username tidak dapat diubah</p>
-                  </div>
+              {/* User Info */}
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold text-gray-900 truncate">
+                  {profile.full_name || profile.username}
+                </h1>
+                <p className="text-sm text-gray-500 truncate">@{profile.username}</p>
+                <span className={`inline-block mt-1.5 px-2.5 py-0.5 text-[10px] font-semibold rounded-full ${
+                  profile.role === 'admin'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-primary-100 text-primary-700'
+                }`}>
+                  {profile.role === 'admin' ? 'Admin' : 'User'}
+                </span>
+              </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                      placeholder="email@example.com"
-                    />
-                  </div>
+              {/* Edit Button */}
+              {!editMode && (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all"
+                >
+                  <Edit3 className="w-4 h-4 text-gray-600" />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                      Nama Lengkap
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.full_name}
-                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                      placeholder="Nama lengkap"
-                    />
-                  </div>
+        {/* Edit Form */}
+        {editMode && profile && (
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4">
+            <h2 className="text-sm font-semibold text-gray-900 mb-4">Edit Profil</h2>
+            <form onSubmit={handleUpdate} className="space-y-3">
+              {/* Username (read-only) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Username</label>
+                <input
+                  type="text"
+                  value={profile.username}
+                  disabled
+                  className="w-full px-3 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl text-gray-400 cursor-not-allowed"
+                />
+              </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      type="submit"
-                      disabled={saving}
-                      className="flex-1"
-                    >
-                      {saving ? 'Menyimpan...' : '💾 Simpan'}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        setEditMode(false)
-                        setFormData({
-                          email: profile.email || '',
-                          full_name: profile.full_name || ''
-                        })
-                      }}
-                      disabled={saving}
-                    >
-                      Batal
-                    </Button>
+              {/* Email */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  placeholder="email@example.com"
+                />
+              </div>
+
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Nama Lengkap</label>
+                <input
+                  type="text"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                  placeholder="Nama lengkap"
+                />
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white gradient-primary hover:opacity-90 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Menyimpan...' : 'Simpan'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditMode(false)
+                    setFormData({
+                      email: profile.email || '',
+                      full_name: profile.full_name || ''
+                    })
+                  }}
+                  disabled={saving}
+                  className="px-4 py-2.5 rounded-xl text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] transition-all disabled:opacity-50"
+                >
+                  Batal
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* Info Cards */}
+        {profile && !editMode && (
+          <div className="space-y-3">
+            {/* Account Info */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-50">
+                <h2 className="text-sm font-semibold text-gray-900">Informasi Akun</h2>
+              </div>
+
+              <div className="divide-y divide-gray-50">
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-9 h-9 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-blue-600" />
                   </div>
-                </form>
-              ) : (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs text-gray-600">Username</p>
-                    <p className="text-sm font-medium text-gray-900">{profile.username}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400">Username</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{profile.username}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Email</p>
-                    <p className="text-sm font-medium text-gray-900">{profile.email || '-'}</p>
+                </div>
+
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-9 h-9 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+                    <Mail className="w-4 h-4 text-purple-600" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Nama Lengkap</p>
-                    <p className="text-sm font-medium text-gray-900">{profile.full_name || '-'}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400">Email</p>
+                    <p className="text-sm font-medium text-gray-900 truncate">{profile.email || '-'}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Role</p>
-                    <span className={`inline-block px-2 py-0.5 text-xs font-semibold rounded-full ${
-                      profile.role === 'admin' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {profile.role === 'admin' ? '👑 Admin' : '👤 User'}
-                    </span>
+                </div>
+
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-9 h-9 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                    <Shield className="w-4 h-4 text-green-600" />
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-600">Member Since</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400">Role</p>
+                    <p className="text-sm font-medium text-gray-900 capitalize">{profile.role}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+                    <Calendar className="w-4 h-4 text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-gray-400">Bergabung</p>
                     <p className="text-sm font-medium text-gray-900">
                       {new Date(profile.created_at).toLocaleDateString('id-ID', {
                         day: '2-digit',
@@ -241,20 +289,38 @@ export default function ProfilePage() {
                     </p>
                   </div>
                 </div>
-              )}
-            </Card>
+              </div>
+            </div>
 
-            {/* Security Card */}
-            <Card className="p-4">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">🔒 Keamanan</h2>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
+            {/* Security Section */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-50">
+                <h2 className="text-sm font-semibold text-gray-900">Keamanan</h2>
+              </div>
+
+              <button
                 onClick={() => router.push('/profile/change-password')}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               >
-                🔑 Ubah Password
-              </Button>
-            </Card>
+                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+                  <Lock className="w-4 h-4 text-gray-600" />
+                </div>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-gray-900">Ubah Password</p>
+                  <p className="text-[10px] text-gray-400">Update password akun Anda</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl text-sm font-medium text-red-500 bg-white border border-red-100 hover:bg-red-50 active:bg-red-100 transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+              Logout
+            </button>
           </div>
         )}
       </div>
