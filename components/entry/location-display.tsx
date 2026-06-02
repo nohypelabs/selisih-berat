@@ -1,24 +1,63 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { getCurrentLocation, formatCoordinates, type GPSError } from '@/lib/utils/gps'
 import type { LocationInfo } from '@/lib/types/entry'
-import { MapPin, AlertTriangle, Globe, RefreshCw, Check, Loader2 } from 'lucide-react'
+import { MapPin, AlertTriangle, Globe, RefreshCw, Check, Loader2, ShieldAlert } from 'lucide-react'
 
 interface Props {
   onLocationFetched: (location: LocationInfo) => void
 }
 
+const MAX_AUTO_RETRY = 2
+const RETRY_DELAY_MS = 1500
+
 export function LocationDisplay({ onLocationFetched }: Props) {
   const [location, setLocation] = useState<LocationInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isPermissionDenied, setIsPermissionDenied] = useState(false)
+  const [retryCount, setRetryCount] = useState(0)
 
   // Prevent React Strict Mode double-fetch in development
   const hasFetchedRef = useRef(false)
 
+  const fetchLocation = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    setIsPermissionDenied(false)
+
+    try {
+      const loc = await getCurrentLocation()
+      setLocation(loc)
+      onLocationFetched(loc)
+      setRetryCount(0)
+    } catch (err: any) {
+      console.error('Location error:', err)
+
+      const gpsError = err as GPSError
+      const errorMessage = gpsError.userMessage || err.message || 'Gagal mendapatkan lokasi'
+      setError(errorMessage)
+
+      // If permission denied, auto-retry
+      if (gpsError.code === 1) {
+        setIsPermissionDenied(true)
+
+        if (retryCount < MAX_AUTO_RETRY) {
+          // Auto-retry after delay to re-trigger permission prompt
+          setTimeout(() => {
+            setRetryCount((prev) => prev + 1)
+            fetchLocation()
+          }, RETRY_DELAY_MS)
+          return
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [onLocationFetched, retryCount])
+
   useEffect(() => {
-    // Prevent double-fetch from React Strict Mode
     if (hasFetchedRef.current) {
       return
     }
@@ -26,26 +65,10 @@ export function LocationDisplay({ onLocationFetched }: Props) {
     fetchLocation()
   }, [])
 
-  const fetchLocation = async () => {
-    // Allow refetch when explicitly called (e.g., "Coba Lagi" button)
-    hasFetchedRef.current = true
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const loc = await getCurrentLocation()
-      setLocation(loc)
-      onLocationFetched(loc)
-    } catch (err: any) {
-      console.error('Location error:', err)
-
-      // Use enhanced error message if available
-      const errorMessage = (err as GPSError).userMessage || err.message || 'Gagal mendapatkan lokasi'
-      setError(errorMessage)
-    } finally {
-      setLoading(false)
-    }
+  const handleRetry = () => {
+    setRetryCount(0)
+    hasFetchedRef.current = false
+    fetchLocation()
   }
 
   if (loading) {
@@ -53,7 +76,18 @@ export function LocationDisplay({ onLocationFetched }: Props) {
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-center space-x-3">
           <Loader2 className="w-5 h-5 text-primary-600 animate-spin" />
-          <span className="text-blue-700">Mengambil lokasi GPS...</span>
+          <div>
+            <span className="text-blue-700 font-medium">
+              {retryCount > 0
+                ? `Minta izin lokasi lagi... (${retryCount}/${MAX_AUTO_RETRY})`
+                : 'Mengambil lokasi GPS...'}
+            </span>
+            {retryCount > 0 && (
+              <p className="text-xs text-blue-500 mt-0.5">
+                Mohon izinkan akses lokasi di popup browser
+              </p>
+            )}
+          </div>
         </div>
       </div>
     )
@@ -62,15 +96,35 @@ export function LocationDisplay({ onLocationFetched }: Props) {
   if (error) {
     return (
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <div className="flex items-start justify-between">
-          <span className="text-red-700 flex-1 flex items-center gap-1.5">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" /> {error}
-          </span>
+        <div className="space-y-3">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+
+              {isPermissionDenied && (
+                <div className="mt-2 p-2 bg-red-100 rounded text-xs text-red-600 space-y-1">
+                  <p className="font-semibold flex items-center gap-1">
+                    <ShieldAlert className="w-3 h-3" /> Izin lokasi ditolak oleh browser
+                  </p>
+                  <p>Cara mengaktifkan:</p>
+                  <ol className="list-decimal ml-4 space-y-0.5">
+                    <li>Klik ikon 🔒 atau ⚠️ di address bar (sebelah URL)</li>
+                    <li>Pilih "Izinkan" untuk Lokasi / Location</li>
+                    <li>Atau masuk Settings → Privacy → Site Settings → Location</li>
+                    <li>Refresh halaman ini setelah mengubah izin</li>
+                  </ol>
+                </div>
+              )}
+            </div>
+          </div>
+
           <button
-            onClick={fetchLocation}
-            className="ml-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
+            onClick={handleRetry}
+            className="w-full px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
           >
-            Coba Lagi
+            <RefreshCw className="w-4 h-4" />
+            Coba Lagi / Minta Izin Ulang
           </button>
         </div>
       </div>
@@ -117,7 +171,7 @@ export function LocationDisplay({ onLocationFetched }: Props) {
             <Check className="w-3 h-3" /> Lokasi GPS berhasil
           </span>
           <button
-            onClick={fetchLocation}
+            onClick={handleRetry}
             className="text-green-700 text-xs hover:underline flex items-center gap-1"
           >
             <RefreshCw className="w-3 h-3" /> Refresh GPS
