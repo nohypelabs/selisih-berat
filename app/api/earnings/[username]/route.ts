@@ -154,9 +154,53 @@ export const GET = withAuth(async (request, { params, user }) => {
       }
     }
 
+    // Get chart data — daily earnings breakdown
+    let chartData: { date: string; earnings: number; entries: number }[] = []
+    try {
+      let chartQuery = supabaseAdmin
+        .from('entries')
+        .select('created_at')
+        .eq('created_by', username)
+        .order('created_at', { ascending: true })
+
+      if (startDate) {
+        chartQuery = chartQuery.gte('created_at', startDate)
+      }
+
+      const { data: chartEntries } = await chartQuery
+
+      if (chartEntries && chartEntries.length > 0) {
+        // Group by date
+        const dailyMap = new Map<string, number>()
+        chartEntries.forEach(entry => {
+          const date = new Date(entry.created_at || '').toISOString().split('T')[0]
+          dailyMap.set(date, (dailyMap.get(date) || 0) + 1)
+        })
+
+        // Get settings for rate
+        const ratePerEntry = earningsData?.rate_per_entry || 500
+        const dailyBonus = earningsData?.daily_bonus || 50000
+
+        // Build chart data with cumulative earnings
+        let cumulative = 0
+        chartData = Array.from(dailyMap.entries()).map(([date, count]) => {
+          const dayEarnings = (count * ratePerEntry) + dailyBonus
+          cumulative += dayEarnings
+          return {
+            date,
+            earnings: cumulative,
+            entries: count
+          }
+        })
+      }
+    } catch (chartErr) {
+      console.error('Chart data error:', chartErr)
+    }
+
     return NextResponse.json({
       success: true,
-      data: earningsData
+      data: earningsData,
+      chart: chartData
     })
   } catch (error: any) {
     console.error('Earnings calculation error:', error)
