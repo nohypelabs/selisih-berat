@@ -6,9 +6,10 @@ import Link from 'next/link'
 import { InstallPrompt } from '@/components/ui/install-prompt'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { MobileSidebar } from '@/components/navigation/mobile-sidebar'
+import { TopBar } from '@/components/navigation/top-bar'
 import {
   Plus, BarChart3, Trophy, FileText, User, Camera, Settings,
-  Database, Menu, LogOut
+  Database, LogOut
 } from 'lucide-react'
 
 const sidebarIconMap: Record<string, React.ReactNode> = {
@@ -68,14 +69,8 @@ export default function ProtectedLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Hamburger — kiri atas */}
-      <button
-        onClick={() => setIsMobileSidebarOpen(true)}
-        className="fixed top-3 left-3 z-30 md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-lg border border-gray-200/50 shadow-sm active:scale-95 transition-all"
-        aria-label="Open menu"
-      >
-        <Menu className="w-5 h-5 text-gray-600" />
-      </button>
+      {/* Mobile Top Bar */}
+      <TopBar onMenuClick={() => setIsMobileSidebarOpen(true)} />
 
       {/* Mobile Sidebar */}
       <MobileSidebar
@@ -148,7 +143,7 @@ export default function ProtectedLayout({
       </aside>
 
       {/* Main Content */}
-      <div className="md:ml-60">
+      <div className="md:ml-60 pt-12 md:pt-0">
         {children}
       </div>
 
