@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   LogIn, UserPlus, ScanBarcode, Camera, MapPin, BarChart3,
   Coins, Smartphone, CheckCircle, Zap, ArrowRight
@@ -54,12 +55,16 @@ export default function HomePage() {
       {/* ─── Navbar ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SB</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src="/icon-latest.png"
+              alt="Selisih Berat"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
             <span className="font-bold text-gray-900 text-sm">Selisih Berat</span>
-          </div>
+          </Link>
           <Link
             href="/login"
             className="px-4 py-2 text-sm font-semibold text-white gradient-primary rounded-lg hover:opacity-90 transition-opacity active:scale-98"

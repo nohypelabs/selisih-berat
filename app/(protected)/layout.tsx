@@ -158,7 +158,7 @@ export default function ProtectedLayout({
       {user && <BottomNav userRole={user.role} />}
 
       {/* Bottom padding for mobile nav */}
-      <div className="md:hidden h-16"></div>
+      <div className="md:hidden h-20"></div>
 
       {/* Install prompt */}
       <InstallPrompt />

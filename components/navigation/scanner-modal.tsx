@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import Quagga from '@ericblade/quagga2'
 import { validateJNTBarcode } from '@/lib/utils/barcode'
+import { X, AlertTriangle, ScanBarcode, Zap, Camera } from 'lucide-react'
 
 interface Props {
   isOpen: boolean
@@ -14,28 +15,25 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
   const videoRef = useRef<HTMLDivElement>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [error, setError] = useState<string>('')
-  const lastDetectedRef = useRef<string>('') // Use ref instead of state for synchronous updates
+  const lastDetectedRef = useRef<string>('')
   const detectionBufferRef = useRef<string[]>([])
-  const isProcessingRef = useRef<boolean>(false) // Prevent concurrent processing
+  const isProcessingRef = useRef<boolean>(false)
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
       startScanning()
     }
-
     return () => {
       stopScanning()
     }
   }, [isOpen])
 
-  // Handle ESC key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
         handleClose()
       }
     }
-
     window.addEventListener('keydown', handleEscape)
     return () => window.removeEventListener('keydown', handleEscape)
   }, [isOpen])
@@ -50,7 +48,7 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
           type: 'LiveStream',
           target: videoRef.current,
           constraints: {
-            facingMode: 'environment', // Back camera
+            facingMode: 'environment',
             width: { min: 640, ideal: 1280, max: 1920 },
             height: { min: 480, ideal: 720, max: 1080 },
           },
@@ -83,37 +81,27 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
       }
     )
 
-    // On barcode detected
     Quagga.onDetected((result) => {
       const code = result.codeResult.code
       if (!code) return
-
-      // Prevent concurrent processing (race condition fix)
       if (isProcessingRef.current) return
-
-      // Check if this is a duplicate scan (synchronous check with ref)
       if (lastDetectedRef.current === code) return
 
-      // Add to buffer to prevent duplicate scans
       detectionBufferRef.current.push(code)
       if (detectionBufferRef.current.length > 10) {
         detectionBufferRef.current.shift()
       }
 
-      // Check if code appears at least 3 times in buffer (confidence check)
       const occurrences = detectionBufferRef.current.filter((c) => c === code).length
 
       if (occurrences >= 3) {
-        // Mark as processing to prevent duplicate vibrations
         isProcessingRef.current = true
         lastDetectedRef.current = code
 
-        // Success feedback (vibration if supported)
         if ('vibrate' in navigator) {
           navigator.vibrate(200)
         }
 
-        // Stop scanning and callback
         stopScanning()
         onScanSuccess(code)
       }
@@ -144,19 +132,24 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-95 z-[100] flex flex-col">
+    <div className="fixed inset-0 bg-black z-[100] flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-black bg-opacity-50">
-        <div className="text-white">
-          <h3 className="text-lg font-semibold">Scan Barcode Resi</h3>
-          <p className="text-sm text-gray-300">Arahkan kamera ke barcode</p>
+      <div className="flex items-center justify-between px-4 py-3 bg-black/60 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-red-600/20 flex items-center justify-center">
+            <ScanBarcode className="w-5 h-5 text-red-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-white">Scan Barcode</h3>
+            <p className="text-[10px] text-gray-400">Arahkan kamera ke barcode resi</p>
+          </div>
         </div>
         <button
           onClick={handleClose}
-          className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors active:scale-95"
+          className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors active:scale-95"
           aria-label="Close scanner"
         >
-          ✕
+          <X className="w-5 h-5 text-white" />
         </button>
       </div>
 
@@ -164,12 +157,15 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
       <div className="flex-1 relative overflow-hidden">
         {error ? (
           <div className="absolute inset-0 flex items-center justify-center p-6">
-            <div className="bg-red-500 text-white p-6 rounded-lg text-center max-w-md">
-              <p className="text-lg font-semibold mb-2">⚠️ Error</p>
-              <p className="text-sm">{error}</p>
+            <div className="bg-white/10 backdrop-blur-md border border-white/10 rounded-2xl p-6 text-center max-w-sm">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center mx-auto mb-3">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
+              </div>
+              <p className="text-sm text-white font-medium mb-1">Kamera Tidak Tersedia</p>
+              <p className="text-xs text-gray-400 mb-4">{error}</p>
               <button
                 onClick={handleClose}
-                className="mt-4 px-6 py-2 bg-white text-red-600 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+                className="px-5 py-2 bg-white text-gray-900 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors active:scale-95"
               >
                 Tutup
               </button>
@@ -183,21 +179,24 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
             {/* Scanning Overlay */}
             {isScanning && (
               <div className="absolute inset-0 pointer-events-none">
-                {/* Corner Brackets */}
-                <div className="absolute top-1/4 left-1/4 right-1/4 bottom-1/4 border-4 border-red-500 rounded-lg">
-                  {/* Top-left corner */}
-                  <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg"></div>
-                  {/* Top-right corner */}
-                  <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg"></div>
-                  {/* Bottom-left corner */}
-                  <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg"></div>
-                  {/* Bottom-right corner */}
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg"></div>
-                </div>
+                {/* Dark vignette */}
+                <div className="absolute inset-0 bg-black/30" />
 
-                {/* Scanning Line Animation */}
-                <div className="absolute top-1/4 left-1/4 right-1/4 bottom-1/4 overflow-hidden">
-                  <div className="w-full h-1 bg-red-500 shadow-lg shadow-red-500 animate-scan"></div>
+                {/* Scan zone — center */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[65%] aspect-[4/3]">
+                  {/* Clear window in center */}
+                  <div className="w-full h-full rounded-xl border-2 border-white/30 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)]" />
+
+                  {/* Corner accents */}
+                  <div className="absolute -top-0.5 -left-0.5 w-7 h-7 border-t-[3px] border-l-[3px] border-red-500 rounded-tl-xl" />
+                  <div className="absolute -top-0.5 -right-0.5 w-7 h-7 border-t-[3px] border-r-[3px] border-red-500 rounded-tr-xl" />
+                  <div className="absolute -bottom-0.5 -left-0.5 w-7 h-7 border-b-[3px] border-l-[3px] border-red-500 rounded-bl-xl" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-7 h-7 border-b-[3px] border-r-[3px] border-red-500 rounded-br-xl" />
+
+                  {/* Scanning line */}
+                  <div className="absolute inset-0 overflow-hidden rounded-xl">
+                    <div className="w-full h-0.5 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_12px_rgba(239,68,68,0.6)] animate-scan" />
+                  </div>
                 </div>
               </div>
             )}
@@ -205,14 +204,19 @@ export function ScannerModal({ isOpen, onClose, onScanSuccess }: Props) {
         )}
       </div>
 
-      {/* Instructions */}
-      <div className="bg-black bg-opacity-50 p-4 text-center text-white space-y-2">
-        <p className="text-sm">
-          📱 Posisikan barcode di dalam kotak
-        </p>
-        <p className="text-xs text-gray-400">
-          ⚡ Scan otomatis ketika terdeteksi
-        </p>
+      {/* Bottom instructions */}
+      <div className="px-4 py-4 pb-6 bg-black/60 backdrop-blur-md">
+        <div className="flex items-center justify-center gap-6 text-gray-400">
+          <div className="flex items-center gap-1.5">
+            <Camera className="w-3.5 h-3.5" />
+            <span className="text-[11px]">Posisikan di dalam kotak</span>
+          </div>
+          <div className="w-1 h-1 rounded-full bg-gray-600" />
+          <div className="flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-yellow-500" />
+            <span className="text-[11px]">Deteksi otomatis</span>
+          </div>
+        </div>
       </div>
     </div>
   )
