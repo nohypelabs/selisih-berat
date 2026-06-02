@@ -3,10 +3,24 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 import { InstallPrompt } from '@/components/ui/install-prompt'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { MobileSidebar } from '@/components/navigation/mobile-sidebar'
+import {
+  Plus, BarChart3, Trophy, FileText, User, Camera, Settings,
+  Database, Menu, LogOut
+} from 'lucide-react'
+
+const sidebarIconMap: Record<string, React.ReactNode> = {
+  '➕': <Plus className="w-5 h-5" />,
+  '📊': <BarChart3 className="w-5 h-5" />,
+  '🏆': <Trophy className="w-5 h-5" />,
+  '📝': <FileText className="w-5 h-5" />,
+  '👤': <User className="w-5 h-5" />,
+  '📋': <Database className="w-5 h-5" />,
+  '📸': <Camera className="w-5 h-5" />,
+  '⚙️': <Settings className="w-5 h-5" />,
+}
 
 export default function ProtectedLayout({
   children,
@@ -47,7 +61,6 @@ export default function ProtectedLayout({
     { href: '/settings', label: 'Settings', icon: '⚙️', roles: ['admin'] },
   ]
 
-  // Filter nav items based on user role
   const visibleNavItems = navItems.filter((item) => {
     if (!user) return true
     return item.roles.includes(user.role)
@@ -55,25 +68,13 @@ export default function ProtectedLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Mobile Hamburger Button */}
+      {/* Mobile Hamburger — kiri atas */}
       <button
         onClick={() => setIsMobileSidebarOpen(true)}
-        className="fixed top-4 right-4 z-30 md:hidden bg-white p-3 rounded-lg shadow-lg hover:shadow-xl active:scale-95 transition-all"
+        className="fixed top-3 left-3 z-30 md:hidden w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 backdrop-blur-lg border border-gray-200/50 shadow-sm active:scale-95 transition-all"
         aria-label="Open menu"
       >
-        <svg
-          className="w-6 h-6 text-gray-700"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 12h16M4 18h16"
-          />
-        </svg>
+        <Menu className="w-5 h-5 text-gray-600" />
       </button>
 
       {/* Mobile Sidebar */}
@@ -86,60 +87,80 @@ export default function ProtectedLayout({
       />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:fixed md:left-0 md:top-0 md:h-screen md:w-64 md:bg-white md:shadow-lg md:flex md:flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-primary-600">Audit Selisih Berat</h1>
-          <p className="text-sm text-gray-600">Agus Express</p>
+      <aside className="hidden md:fixed md:left-0 md:top-0 md:h-screen md:w-60 md:bg-white md:border-r md:border-gray-100 md:flex md:flex-col">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
+              <span className="text-white font-bold text-xs">SB</span>
+            </div>
+            <div>
+              <h1 className="text-sm font-bold text-gray-900 leading-tight">Selisih Berat</h1>
+              <p className="text-[10px] text-gray-400">J&T Express</p>
+            </div>
+          </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
-          {visibleNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                pathname === item.href
-                  ? 'bg-primary-600 text-white'
-                  : 'hover:bg-gray-100 text-gray-700'
-              }`}
-            >
-              <span className="text-xl">{item.icon}</span>
-              <span className="font-semibold">{item.label}</span>
-            </Link>
-          ))}
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-3 overflow-y-auto">
+          {visibleNavItems.map((item) => {
+            const icon = sidebarIconMap[item.icon as string] || <BarChart3 className="w-5 h-5" />
+            const isActive = pathname === item.href
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg mb-0.5 transition-colors ${
+                  isActive
+                    ? 'bg-primary-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
+                }`}
+              >
+                <span className={isActive ? 'text-white' : 'text-gray-400'}>{icon}</span>
+                <span className="text-sm font-medium">{item.label}</span>
+              </Link>
+            )
+          })}
         </nav>
 
-        <div className="p-4 border-t">
+        {/* User + Logout */}
+        <div className="px-3 py-3 border-t border-gray-100">
           {user && (
-            <div className="mb-3">
-              <p className="font-semibold text-gray-900">{user.username}</p>
-              <p className="text-sm text-gray-600">{user.role}</p>
+            <div className="flex items-center gap-2.5 px-3 py-2 mb-2">
+              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                <span className="text-xs font-bold text-primary-700">
+                  {(user.full_name || user.username).charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-gray-900 truncate">{user.full_name || user.username}</p>
+                <p className="text-[10px] text-gray-400 capitalize">{user.role}</p>
+              </div>
             </div>
           )}
-
-          <Button
-            variant="danger"
-            size="sm"
-            className="w-full"
+          <button
             onClick={handleLogout}
+            className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
           >
-            🚪 Logout
-          </Button>
+            <LogOut className="w-4 h-4" />
+            <span className="font-medium">Logout</span>
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="md:ml-64">
+      <div className="md:ml-60">
         {children}
       </div>
 
-      {/* Mobile Bottom Navigation with Center SCAN button */}
+      {/* Mobile Bottom Nav */}
       {user && <BottomNav userRole={user.role} />}
 
-      {/* Add bottom padding for mobile nav - 80px for elevated center button */}
-      <div className="md:hidden h-20"></div>
+      {/* Bottom padding for mobile nav */}
+      <div className="md:hidden h-16"></div>
 
-      {/* Install prompt (only shows if not installed) */}
+      {/* Install prompt */}
       <InstallPrompt />
     </div>
   )

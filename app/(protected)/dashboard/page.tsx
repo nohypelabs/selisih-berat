@@ -2,11 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { StatsCard } from '@/components/charts/stats-card'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { EarningsCard } from '@/components/earnings/earnings-card'
 import { formatDate, formatNumber } from '@/lib/utils/helpers'
+import { Package, Camera, Clock, Scale, RefreshCw, FileText } from 'lucide-react'
 import type { EntryStats } from '@/lib/types/entry'
 import type { Entry } from '@/lib/types/entry'
 
@@ -33,15 +31,14 @@ export default function DashboardPage() {
       setUsername(user.username)
     }
 
-    // Initial fetch
+    // initial fetch
     fetchData()
 
     // Auto-refresh every 30 seconds
     const intervalId = setInterval(() => {
       fetchData()
-    }, 30000) // 30 seconds
+    }, 30000)
 
-    // Cleanup interval on unmount
     return () => clearInterval(intervalId)
   }, [router])
 
@@ -51,14 +48,12 @@ export default function DashboardPage() {
 
       const token = localStorage.getItem('accessToken')
 
-      // Fetch stats
       const statsRes = await fetch('/api/entries/stats')
       const statsData = await statsRes.json()
       if (statsData.success) {
         setStats(statsData.data)
       }
 
-      // Fetch entries
       const entriesRes = await fetch('/api/entries?limit=10', {
         headers: { 'Authorization': `Bearer ${token}` },
       })
@@ -81,141 +76,153 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-full border-3 border-primary-200 border-t-primary-600 animate-spin" />
+          <p className="text-xs text-gray-400">Memuat dashboard...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-3 pb-16">
-      <div className="container mx-auto px-3">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-lg font-bold text-gray-900">📊 Dashboard</h1>
+    <div className="min-h-screen bg-gray-50 py-3 pb-24">
+      <div className="container mx-auto px-3 max-w-4xl">
+
+        {/* ─── Header ─── */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
+            <p className="text-[10px] text-gray-400">
+              {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </p>
+          </div>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            className="px-3 py-1.5 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all disabled:opacity-50 shadow-sm"
           >
-            <span className={refreshing ? 'animate-spin' : ''}>🔄</span>
-            {refreshing ? 'Refreshing...' : 'Refresh'}
+            <RefreshCw className={`w-4 h-4 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
           </button>
         </div>
 
-        {/* Stats Grid - 2x2 Mobile, 4x1 Desktop */}
+        {/* ─── Stats Grid ─── */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-2 mb-4">
             {/* Total Entries */}
-            <div className="stats-card-mobile bg-primary-50 border border-primary-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="stats-label text-primary-700">Total Entries</p>
-                  <p className="stats-value text-primary-900">{formatNumber(stats.totalEntries)}</p>
-                  <p className="stats-subtitle text-primary-600">All time</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-primary-50 flex items-center justify-center">
+                  <Package className="w-4 h-4 text-primary-600" />
                 </div>
-                <span className="text-2xl opacity-80">📦</span>
+                <span className="text-[10px] font-medium text-gray-500">Total Resi</span>
               </div>
+              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.totalEntries)}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">All time</p>
             </div>
 
             {/* Total Photos */}
-            <div className="stats-card-mobile bg-green-50 border border-green-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="stats-label text-green-700">Total Photos</p>
-                  <p className="stats-value text-green-900">{formatNumber(stats.totalPhotos)}</p>
-                  <p className="stats-subtitle text-green-600">Documented</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center">
+                  <Camera className="w-4 h-4 text-green-600" />
                 </div>
-                <span className="text-2xl opacity-80">📸</span>
+                <span className="text-[10px] font-medium text-gray-500">Total Foto</span>
               </div>
+              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.totalPhotos)}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Terdokumentasi</p>
             </div>
 
-            {/* Today's Entries */}
-            <div className="stats-card-mobile bg-yellow-50 border border-yellow-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="stats-label text-yellow-700">Today</p>
-                  <p className="stats-value text-yellow-900">{formatNumber(stats.todayEntries)}</p>
-                  <p className="stats-subtitle text-yellow-600">Entries</p>
+            {/* Today */}
+            <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-amber-600" />
                 </div>
-                <span className="text-2xl opacity-80">🔥</span>
+                <span className="text-[10px] font-medium text-gray-500">Hari Ini</span>
               </div>
+              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.todayEntries)}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Entry hari ini</p>
             </div>
 
             {/* Avg Selisih */}
-            <div className="stats-card-mobile bg-red-50 border border-red-200">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="stats-label text-red-700">Avg Selisih</p>
-                  <p className="stats-value text-red-900">{stats.avgSelisih} kg</p>
-                  <p className="stats-subtitle text-red-600">Average</p>
+            <div className="bg-white rounded-xl border border-gray-100 p-3 shadow-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                  <Scale className="w-4 h-4 text-blue-600" />
                 </div>
-                <span className="text-2xl opacity-80">⚖️</span>
+                <span className="text-[10px] font-medium text-gray-500">Avg Selisih</span>
               </div>
+              <p className="text-xl font-bold text-gray-900">{stats.avgSelisih} <span className="text-sm font-medium text-gray-400">kg</span></p>
+              <p className="text-[10px] text-gray-400 mt-0.5">Rata-rata</p>
             </div>
           </div>
         )}
 
-        {/* Earnings Card - Compact Mobile */}
+        {/* ─── Earnings ─── */}
         {username && (
-          <div className="mb-3">
+          <div className="mb-4">
             <EarningsCard username={username} showBreakdown={true} />
           </div>
         )}
 
-        {/* Recent Entries - Compact Table */}
-        <div className="card-mobile">
-          <h2 className="text-base font-bold mb-3">Recent Entries</h2>
+        {/* ─── Recent Entries ─── */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-50">
+            <h2 className="text-sm font-bold text-gray-900">Entry Terbaru</h2>
+            <span className="text-[10px] text-gray-400">{entries.length} terakhir</span>
+          </div>
 
           {entries.length === 0 ? (
-            <p className="text-gray-500 text-center py-6 text-sm">Belum ada entry</p>
+            <div className="py-10 text-center">
+              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                <FileText className="w-6 h-6 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500">Belum ada entry</p>
+              <p className="text-[10px] text-gray-400 mt-1">Mulai scan barcode untuk entry pertama</p>
+            </div>
           ) : (
-            <div className="overflow-x-auto -mx-3">
-              <table className="table-mobile">
-                <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-left py-2 px-2 text-[10px]">No Resi</th>
-                    <th className="text-left py-2 px-2 text-[10px]">Nama</th>
-                    <th className="text-right py-2 px-2 text-[10px]">Resi</th>
-                    <th className="text-right py-2 px-2 text-[10px]">Aktual</th>
-                    <th className="text-right py-2 px-2 text-[10px]">Selisih</th>
-                    <th className="text-center py-2 px-2 text-[10px]">Status</th>
-                    <th className="text-left py-2 px-2 text-[10px]">Tanggal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {entries.map((entry) => (
-                    <tr key={entry.id} className="border-b hover:bg-gray-50 active:bg-gray-100">
-                      <td className="py-2 px-2 font-mono text-[10px]">{entry.no_resi}</td>
-                      <td className="py-2 px-2 text-xs truncate max-w-[100px]">{entry.nama}</td>
-                      <td className="py-2 px-2 text-right text-xs">{entry.berat_resi}</td>
-                      <td className="py-2 px-2 text-right text-xs">{entry.berat_aktual}</td>
-                      <td className="py-2 px-2 text-right text-xs font-bold">
-                        <span className={
-                          Math.abs(entry.selisih) < 0.5 ? 'text-green-600' :
-                          Math.abs(entry.selisih) < 1 ? 'text-yellow-600' :
-                          'text-red-600'
-                        }>
-                          {entry.selisih >= 0 ? '+' : ''}{entry.selisih}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-center">
-                        <span className={`badge-mobile ${
-                          entry.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                          entry.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {entry.status}
-                        </span>
-                      </td>
-                      <td className="py-2 px-2 text-[10px] text-gray-600">
+            <div className="divide-y divide-gray-50">
+              {entries.map((entry) => (
+                <div key={entry.id} className="px-4 py-3 hover:bg-gray-50/50 active:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between mb-1.5">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{entry.nama}</p>
+                      <p className="text-[10px] font-mono text-gray-400 mt-0.5">{entry.no_resi}</p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-3">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                        entry.status === 'pending' ? 'bg-amber-50 text-amber-700' :
+                        entry.status === 'approved' ? 'bg-green-50 text-green-700' :
+                        entry.status === 'submitted' ? 'bg-blue-50 text-blue-700' :
+                        'bg-gray-50 text-gray-600'
+                      }`}>
+                        {entry.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-[10px] text-gray-500">
+                      <span>Resi: <span className="font-medium text-gray-700">{entry.berat_resi}</span></span>
+                      <span>Aktual: <span className="font-medium text-gray-700">{entry.berat_aktual}</span></span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold ${
+                        Math.abs(entry.selisih) < 0.5 ? 'text-green-600' :
+                        Math.abs(entry.selisih) < 1 ? 'text-amber-600' :
+                        'text-red-600'
+                      }`}>
+                        {entry.selisih >= 0 ? '+' : ''}{entry.selisih} kg
+                      </span>
+                      <span className="text-[10px] text-gray-400">
                         {entry.created_at ? new Date(entry.created_at).toLocaleDateString('id-ID', {
                           day: '2-digit',
                           month: 'short'
                         }) : '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
