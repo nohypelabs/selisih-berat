@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatRupiah, formatNumber, getEarningsColor } from '@/lib/utils/earnings'
+import { DollarSign, TrendingUp } from 'lucide-react'
 
 interface EarningsCardProps {
   username: string
@@ -19,14 +20,24 @@ interface EarningsData {
   total_earnings: number
 }
 
+type Period = '1d' | '7d' | '30d' | 'all'
+
+const periodOptions: { key: Period; label: string }[] = [
+  { key: '1d', label: '1D' },
+  { key: '7d', label: '7D' },
+  { key: '30d', label: '30D' },
+  { key: 'all', label: 'All' },
+]
+
 export function EarningsCard({ username, showBreakdown = false, className = '' }: EarningsCardProps) {
   const [earnings, setEarnings] = useState<EarningsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [period, setPeriod] = useState<Period>('30d')
 
   useEffect(() => {
     fetchEarnings()
-  }, [username])
+  }, [username, period])
 
   const fetchEarnings = async () => {
     setLoading(true)
@@ -40,7 +51,7 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
         return
       }
 
-      const response = await fetch(`/api/earnings/${username}`, {
+      const response = await fetch(`/api/earnings/${username}?period=${period}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -65,11 +76,11 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
 
   if (loading) {
     return (
-      <div className={`card-mobile ${className}`}>
+      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-3 bg-gray-200 rounded w-1/2 mb-2"></div>
-          <div className="h-6 bg-gray-200 rounded w-3/4 mb-1"></div>
-          <div className="h-2 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-3 bg-gray-200 rounded w-1/3 mb-3"></div>
+          <div className="h-7 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div className="h-2 bg-gray-200 rounded w-2/3"></div>
         </div>
       </div>
     )
@@ -77,16 +88,16 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
 
   if (error) {
     return (
-      <div className={`card-mobile ${className}`}>
-        <div className="text-red-600 text-xs">{error}</div>
+      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 ${className}`}>
+        <div className="text-red-500 text-xs">{error}</div>
       </div>
     )
   }
 
   if (!earnings) {
     return (
-      <div className={`card-mobile ${className}`}>
-        <div className="text-gray-500 text-xs">No earnings data available</div>
+      <div className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-4 ${className}`}>
+        <div className="text-gray-400 text-xs">No earnings data</div>
       </div>
     )
   }
@@ -94,53 +105,66 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
   const earningsColor = getEarningsColor(earnings.total_earnings)
 
   return (
-    <div className={`card-mobile bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 ${className}`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center space-x-1.5">
-          <span className="text-lg">💰</span>
-          <h3 className="text-sm font-semibold text-gray-800">Total Earnings</h3>
+    <div className={`bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200 shadow-sm overflow-hidden ${className}`}>
+      {/* Header + Period Tabs */}
+      <div className="px-4 pt-3 pb-2">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-green-600" />
+            <h3 className="text-sm font-semibold text-gray-800">Total Earnings</h3>
+          </div>
+          <div className="flex bg-white/60 rounded-lg p-0.5">
+            {periodOptions.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setPeriod(opt.key)}
+                className={`px-2 py-1 text-[10px] font-semibold rounded-md transition-all ${
+                  period === opt.key
+                    ? 'bg-green-600 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Total */}
+        <div className={`text-2xl font-bold ${earningsColor}`}>
+          {formatRupiah(earnings.total_earnings)}
+        </div>
+        <p className="text-xs text-gray-500 mt-0.5">
+          {formatNumber(earnings.total_entries)} entries • {earnings.days_with_entries} hari
+        </p>
       </div>
 
-      <div className="space-y-2">
-        {/* Total Earnings */}
-        <div>
-          <div className={`text-2xl font-bold ${earningsColor}`}>
-            {formatRupiah(earnings.total_earnings)}
+      {/* Breakdown */}
+      {showBreakdown && (
+        <div className="px-4 pb-3 pt-1 space-y-1.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">Entries ({formatNumber(earnings.total_entries)} × {formatRupiah(earnings.rate_per_entry)})</span>
+            <span className="font-medium text-gray-700">{formatRupiah(earnings.entries_earnings)}</span>
           </div>
-          <p className="text-xs text-gray-600 mt-0.5">
-            {formatNumber(earnings.total_entries)} entries • {earnings.days_with_entries} days
-          </p>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-500">Daily Bonus ({earnings.days_with_entries} × {formatRupiah(earnings.daily_bonus)})</span>
+            <span className="font-medium text-gray-700">{formatRupiah(earnings.bonus_earnings)}</span>
+          </div>
         </div>
+      )}
 
-        {/* Breakdown */}
-        {showBreakdown && (
-          <div className="mt-2 pt-2 border-t border-green-200 space-y-1.5">
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Entries ({formatNumber(earnings.total_entries)} × {formatRupiah(earnings.rate_per_entry)})</span>
-              <span className="font-semibold text-gray-800">{formatRupiah(earnings.entries_earnings)}</span>
-            </div>
-            <div className="flex justify-between text-xs">
-              <span className="text-gray-600">Daily Bonus ({earnings.days_with_entries} × {formatRupiah(earnings.daily_bonus)})</span>
-              <span className="font-semibold text-gray-800">{formatRupiah(earnings.bonus_earnings)}</span>
-            </div>
-            <div className="flex justify-between text-xs font-bold pt-1.5 border-t border-green-300">
-              <span className="text-gray-800">Total</span>
-              <span className={earningsColor}>{formatRupiah(earnings.total_earnings)}</span>
-            </div>
+      {/* Daily Average */}
+      {earnings.days_with_entries > 0 && (
+        <div className="mx-4 mb-3 p-2.5 bg-white/80 rounded-xl">
+          <div className="flex items-center gap-1.5">
+            <TrendingUp className="w-3 h-3 text-gray-400" />
+            <span className="text-[10px] text-gray-500">Daily Average</span>
           </div>
-        )}
-
-        {/* Daily Average */}
-        {earnings.days_with_entries > 0 && (
-          <div className="mt-2 p-2 bg-white rounded-lg">
-            <div className="text-[10px] text-gray-600">Daily Average</div>
-            <div className="text-base font-bold text-gray-800">
-              {formatRupiah(Math.round(earnings.total_earnings / earnings.days_with_entries))}
-            </div>
+          <div className="text-base font-bold text-gray-800 mt-0.5">
+            {formatRupiah(Math.round(earnings.total_earnings / earnings.days_with_entries))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

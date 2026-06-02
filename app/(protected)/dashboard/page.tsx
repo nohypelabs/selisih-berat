@@ -216,7 +216,9 @@ export default function DashboardPage() {
                       <span className="text-[10px] text-gray-400">
                         {entry.created_at ? new Date(entry.created_at).toLocaleDateString('id-ID', {
                           day: '2-digit',
-                          month: 'short'
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
                         }) : '-'}
                       </span>
                     </div>

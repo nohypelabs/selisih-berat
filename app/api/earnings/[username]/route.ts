@@ -17,6 +17,19 @@ export const GET = withAuth(async (request, { params, user }) => {
       )
     }
 
+    // Get period filter from query params
+    const url = new URL(request.url)
+    const period = url.searchParams.get('period') || '30d' // 1d, 7d, 30d, all
+
+    // Calculate date range based on period
+    let startDate: string | null = null
+    if (period !== 'all') {
+      const now = new Date()
+      const days = period === '1d' ? 1 : period === '7d' ? 7 : 30
+      now.setDate(now.getDate() - days)
+      startDate = now.toISOString()
+    }
+
     // Try database function first (OPTIMIZED!)
     let earningsData = null
     const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('calculate_user_earnings', {
@@ -67,14 +80,29 @@ export const GET = withAuth(async (request, { params, user }) => {
       const ratePerEntry = settingsMap.rate_per_entry ? parseInt(settingsMap.rate_per_entry) : 500
       const dailyBonus = settingsMap.daily_bonus ? parseInt(settingsMap.daily_bonus) : 50000
 
-      // Calculate earnings manually
-      const totalEntries = userStats.total_entries || 0
+      // Calculate earnings manually (with period filter)
+      let totalEntries = userStats.total_entries || 0
+      if (startDate) {
+        // Count entries within period
+        const { count } = await supabaseAdmin
+          .from('entries')
+          .select('*', { count: 'exact', head: true })
+          .eq('created_by', username)
+          .gte('created_at', startDate)
+        totalEntries = count || 0
+      }
 
-      // Count distinct days from entries table (simple approach)
-      const { data: entriesData } = await supabaseAdmin
+      // Count distinct days from entries table (with period filter)
+      let entriesQuery = supabaseAdmin
         .from('entries')
         .select('created_at')
         .eq('created_by', username)
+
+      if (startDate) {
+        entriesQuery = entriesQuery.gte('created_at', startDate)
+      }
+
+      const { data: entriesData } = await entriesQuery
 
       // Count unique dates
       const uniqueDates = new Set(
