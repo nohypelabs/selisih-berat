@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { EntriesTable } from '@/components/tables/entries-table'
 import type { Entry } from '@/lib/types/entry'
+import {
+  FileText, Filter, Search, Calendar, RotateCcw, Info
+} from 'lucide-react'
 
 export default function MyEntriesPage() {
   const router = useRouter()
@@ -127,135 +127,106 @@ export default function MyEntriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 pb-24">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-4 py-4 max-w-lg mx-auto">
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Entries</h1>
-          <p className="text-gray-600">View and search your entry data</p>
+        <div className="mb-3">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-gray-600" />
+            My Entries
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">Riwayat entry yang sudah dibuat</p>
         </div>
 
-        {/* Stats Card */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Total My Entries</p>
-                <p className="text-3xl font-bold text-gray-900">{entries.length}</p>
-              </div>
-              <div className="bg-primary-100 p-4 rounded-lg">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
+        {/* Compact Filter Bar */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 mb-3">
+          {/* Row 1: Search */}
+          <div className="relative mb-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Cari nama atau no resi..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+            />
+          </div>
 
-          <Card>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Filtered Results</p>
-                <p className="text-3xl font-bold text-gray-900">{filteredEntries.length}</p>
-              </div>
-              <div className="bg-green-100 p-4 rounded-lg">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-        </div>
+          {/* Row 2: Status + Date + Reset */}
+          <div className="flex gap-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="flex-1 px-2.5 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all bg-white"
+            >
+              <option value="">Semua Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="flex-1 px-2 py-2 text-[11px] border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              placeholder="Dari"
+            />
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="flex-1 px-2 py-2 text-[11px] border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              placeholder="Sampai"
+            />
+            <button
+              onClick={resetFilters}
+              className="px-2.5 py-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+              title="Reset Filter"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          </div>
 
-        {/* Filters */}
-        <Card className="mb-8">
-          <div className="space-y-6">
-            {/* Filter Controls */}
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Filters</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Search */}
-                <Input
-                  type="text"
-                  placeholder="Search by Nama or No Resi..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-
-                {/* Status Filter */}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                >
-                  <option value="">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-
-                {/* Date From */}
-                <Input
-                  type="date"
-                  placeholder="From Date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full"
-                />
-
-                {/* Date To */}
-                <Input
-                  type="date"
-                  placeholder="To Date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Filter Actions */}
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetFilters}
-                >
-                  Reset Filters
-                </Button>
-                <div className="text-sm text-gray-600 flex items-center ml-2">
-                  Showing {filteredEntries.length} of {entries.length} entries
-                </div>
-              </div>
-            </div>
-
-            {/* Info Message */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-blue-100 p-2 rounded-lg">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-blue-900 mb-1">Read-Only View</h3>
-                  <p className="text-sm text-blue-800">
-                    You can view and search your entries. Click any row to see full details.
-                    Contact admin if you need to modify or delete entries.
-                  </p>
-                </div>
-              </div>
+          {/* Row 3: Stats inline */}
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-100">
+            <div className="flex items-center gap-3 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <FileText className="w-3 h-3 text-gray-400" />
+                <span className="font-semibold text-gray-700">{entries.length}</span> total
+              </span>
+              <span className="flex items-center gap-1">
+                <Filter className="w-3 h-3 text-gray-400" />
+                <span className="font-semibold text-gray-700">{filteredEntries.length}</span> filter
+              </span>
             </div>
           </div>
-        </Card>
+        </div>
 
-        {/* Entries Table - Read Only (no delete, no selection) */}
-        <Card>
-          <EntriesTable
-            entries={filteredEntries}
-            loading={loading}
-            isAdmin={false}
-          />
-        </Card>
+        {/* Info Banner */}
+        <div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3 flex items-start gap-2">
+          <Info className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+          <p className="text-[10px] text-blue-700 leading-relaxed">
+            Klik row untuk melihat detail entry. Hubungi admin jika perlu mengubah atau menghapus entry.
+          </p>
+        </div>
+
+        {/* Entries Table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-gray-50">
+            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Riwayat Entry
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <EntriesTable
+              entries={filteredEntries}
+              loading={loading}
+              isAdmin={false}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
