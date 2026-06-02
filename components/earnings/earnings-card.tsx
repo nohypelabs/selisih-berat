@@ -33,7 +33,7 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
   const [earnings, setEarnings] = useState<EarningsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [period, setPeriod] = useState<Period>('30d')
+  const [period, setPeriod] = useState<Period>('1d')
 
   useEffect(() => {
     fetchEarnings()

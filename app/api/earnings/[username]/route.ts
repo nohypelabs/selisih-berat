@@ -19,7 +19,7 @@ export const GET = withAuth(async (request, { params, user }) => {
 
     // Get period filter from query params
     const url = new URL(request.url)
-    const period = url.searchParams.get('period') || '30d' // 1d, 7d, 30d, all
+    const period = url.searchParams.get('period') || '1d' // 1d, 7d, 30d, all
 
     // Calculate date range based on period
     let startDate: string | null = null
