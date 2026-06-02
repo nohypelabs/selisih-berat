@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useEffect } from 'react'
 import {
   BarChart3, Plus, FileText, User, Camera, Settings,
-  Database, X, LogOut
+  Database, LogOut
 } from 'lucide-react'
 
 interface NavItem {
@@ -75,14 +75,14 @@ export function MobileSidebar({
         aria-hidden="true"
       />
 
-      {/* Sidebar */}
+      {/* Sidebar — Glassmorphism */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 max-w-[80vw] bg-white z-50 transform transition-transform duration-300 ease-out md:hidden flex flex-col ${
+        className={`fixed top-0 left-0 h-full w-64 max-w-[80vw] z-50 transform transition-transform duration-300 ease-out md:hidden flex flex-col bg-white/[0.65] backdrop-blur-2xl border-r border-white/30 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        {/* Header — compact */}
-        <div className="px-4 py-4 border-b border-gray-100">
+        {/* Header — with Logout */}
+        <div className="px-4 py-4 border-b border-white/20">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <img src="/icon-latest.png" alt="SB" className="w-8 h-8 rounded-lg object-cover" />
@@ -92,15 +92,18 @@ export function MobileSidebar({
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-              aria-label="Close menu"
+              onClick={() => {
+                onLogout()
+                onClose()
+              }}
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-red-50 hover:bg-red-100 active:scale-95 transition-all"
+              aria-label="Logout"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <LogOut className="w-4 h-4 text-red-500" />
             </button>
           </div>
 
-          {/* User info — inline compact */}
+          {/* User info */}
           {user && (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
@@ -126,10 +129,10 @@ export function MobileSidebar({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 mb-0.5 ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-150 mb-0.5 ${
                   isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
+                    ? 'bg-primary-600/90 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-white/50 active:bg-white/70'
                 }`}
               >
                 <span className={isActive ? 'text-white' : 'text-gray-400'}>{icon}</span>
@@ -139,18 +142,9 @@ export function MobileSidebar({
           })}
         </nav>
 
-        {/* Logout */}
-        <div className="px-3 py-3 border-t border-gray-100">
-          <button
-            onClick={() => {
-              onLogout()
-              onClose()
-            }}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 active:bg-red-100 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="text-sm font-medium">Logout</span>
-          </button>
+        {/* Footer */}
+        <div className="px-4 py-3 border-t border-white/20">
+          <p className="text-[10px] text-gray-400 text-center">v1.0 • Audit Selisih Berat</p>
         </div>
       </aside>
     </>
