@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { BarChart3, Plus, Database, FileText, User, Camera, Settings, ScanBarcode } from 'lucide-react'
+import { BarChart3, Plus, Database, FileText, User, Camera, ScanBarcode } from 'lucide-react'
 import { ScannerModal } from '@/components/navigation/scanner-modal'
 
 interface NavItem {
@@ -24,9 +24,8 @@ export function BottomNav({ userRole }: { userRole: string }) {
     { href: '/entry', label: 'Entry', icon: <Plus className="w-5 h-5" />, userOnly: true },
     { href: '/data-management', label: 'Data', icon: <Database className="w-5 h-5" />, adminOnly: true },
     { href: '/my-entries', label: 'Riwayat', icon: <FileText className="w-5 h-5" />, userOnly: true },
-    { href: '/profile', label: 'Profil', icon: <User className="w-5 h-5" />, userOnly: true },
     { href: '/foto-management', label: 'Foto', icon: <Camera className="w-5 h-5" />, adminOnly: true },
-    { href: '/settings', label: 'Setting', icon: <Settings className="w-5 h-5" />, adminOnly: true },
+    { href: '/profile', label: 'Profil', icon: <User className="w-5 h-5" /> },
   ]
 
   const visibleItems = navItems.filter((item) => {
