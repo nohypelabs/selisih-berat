@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { initBarcodeScanner, stopBarcodeScanner, validateJNTBarcode } from '@/lib/utils/barcode'
+import { Camera, Square } from 'lucide-react'
 
 interface Props {
   onScan: (code: string) => void
@@ -88,9 +89,10 @@ export function BarcodeScanner({ onScan, onError }: Props) {
               <p className="mb-4">Kamera akan aktif saat scanning</p>
               <button
                 onClick={startScanning}
-                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2"
               >
-                📷 Mulai Scan Barcode
+                <Camera className="w-5 h-5" />
+                Mulai Scan Barcode
               </button>
             </div>
           </div>
@@ -113,9 +115,10 @@ export function BarcodeScanner({ onScan, onError }: Props) {
         <div className="mt-4 flex justify-center">
           <button
             onClick={stopScanning}
-            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
           >
-            ⏹️ Stop Scanning
+            <Square className="w-5 h-5" />
+            Stop Scanning
           </button>
         </div>
       )}
