@@ -44,7 +44,7 @@ export function BottomNav({ userRole }: { userRole: string }) {
 
   return (
     <>
-      <nav className="fixed bottom-4 left-5 right-5 md:hidden z-50 safe-area-bottom bg-white/40 backdrop-blur-2xl border border-white/30 rounded-[28px] shadow-xl shadow-black/10">
+      <nav className="fixed bottom-4 left-5 right-5 md:hidden z-50 safe-area-bottom bg-white/[0.34] backdrop-blur-2xl border border-white/25 rounded-[34px] shadow-xl shadow-black/10">
         <div className="flex items-end justify-around h-14 px-1">
           {leftItems.map((item) => (
             <Link
