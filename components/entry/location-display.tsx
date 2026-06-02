@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { getCurrentLocation, formatCoordinates, type GPSError } from '@/lib/utils/gps'
 import type { LocationInfo } from '@/lib/types/entry'
+import { MapPin, AlertTriangle, FileText, Globe, RefreshCw, Check, Lightbulb, Loader2 } from 'lucide-react'
 
 interface Props {
   onLocationFetched: (location: LocationInfo) => void
@@ -100,8 +101,8 @@ export function LocationDisplay({ onLocationFetched }: Props) {
     return (
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-center space-x-3">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-600"></div>
-          <span className="text-blue-700">📍 Mengambil lokasi GPS...</span>
+          <Loader2 className="w-5 h-5 text-primary-600 animate-spin" />
+          <span className="text-blue-700">Mengambil lokasi GPS...</span>
         </div>
       </div>
     )
@@ -112,7 +113,7 @@ export function LocationDisplay({ onLocationFetched }: Props) {
       <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
         <div className="space-y-3">
           <div className="flex items-start justify-between">
-            <span className="text-red-700 flex-1">⚠️ {error}</span>
+            <span className="text-red-700 flex-1 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4 flex-shrink-0" /> {error}</span>
             <button
               onClick={fetchLocation}
               className="ml-2 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors"
@@ -126,7 +127,7 @@ export function LocationDisplay({ onLocationFetched }: Props) {
                 onClick={() => setShowManualInput(true)}
                 className="text-sm text-red-700 hover:underline"
               >
-                📝 Masukkan alamat manual
+                <FileText className="w-4 h-4 inline mr-1" />Masukkan alamat manual
               </button>
             </div>
           )}
@@ -139,8 +140,9 @@ export function LocationDisplay({ onLocationFetched }: Props) {
     return (
       <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
         <div className="space-y-3">
-          <div className="text-yellow-800 text-sm font-semibold">
-            📝 Input Lokasi Manual
+          <div className="text-yellow-800 text-sm font-semibold flex items-center gap-1.5">
+            <FileText className="w-4 h-4" />
+            Input Lokasi Manual
           </div>
           <input
             type="text"
@@ -171,7 +173,7 @@ export function LocationDisplay({ onLocationFetched }: Props) {
           </div>
           {permissionDenied && (
             <div className="text-xs text-yellow-700 mt-2">
-              💡 Untuk menggunakan GPS: Klik ikon kunci/info di address bar → Izinkan akses lokasi
+              <Lightbulb className="w-3 h-3 inline mr-1" />Untuk menggunakan GPS: Klik ikon kunci/info di address bar → Izinkan akses lokasi
             </div>
           )}
         </div>
@@ -187,7 +189,7 @@ export function LocationDisplay({ onLocationFetched }: Props) {
     <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
       <div className="space-y-2">
         <div className="flex items-start space-x-2">
-          <span className="text-green-700 font-semibold">📍 Lokasi GPS:</span>
+          <span className="text-green-700 font-semibold flex items-center gap-1.5"><MapPin className="w-4 h-4" /> Lokasi GPS:</span>
           <div className="flex-1">
             <p className="text-green-800 font-mono text-sm">
               {formatCoordinates(location.latitude, location.longitude)}
@@ -200,38 +202,38 @@ export function LocationDisplay({ onLocationFetched }: Props) {
 
         {location.address && (
           <div className="mt-2 pt-2 border-t border-green-300">
-            <p className="text-green-700 text-sm">
-              🌍 {location.address}
+            <p className="text-green-700 text-sm flex items-center gap-1.5">
+              <Globe className="w-4 h-4" /> {location.address}
             </p>
           </div>
         )}
 
         {location.city && (
-          <div className="text-green-600 text-xs">
-            📍 {location.city}, {location.country}
+          <div className="text-green-600 text-xs flex items-center gap-1">
+            <MapPin className="w-3 h-3" /> {location.city}, {location.country}
           </div>
         )}
 
         <div className="mt-2 pt-2 border-t border-green-300 flex items-center justify-between">
-          <span className="text-green-600 text-xs">
+          <span className="text-green-600 text-xs flex items-center gap-1">
             {location.latitude === 0 && location.longitude === 0
-              ? '📝 Lokasi manual'
-              : '✓ Lokasi GPS berhasil'}
+              ? <><FileText className="w-3 h-3" /> Lokasi manual</>
+              : <><Check className="w-3 h-3" /> Lokasi GPS berhasil</>}
           </span>
           <div className="flex gap-2">
             {location.latitude !== 0 && location.longitude !== 0 && (
               <button
                 onClick={fetchLocation}
-                className="text-green-700 text-xs hover:underline"
+                className="text-green-700 text-xs hover:underline flex items-center gap-1"
               >
-                🔄 Refresh GPS
+                <RefreshCw className="w-3 h-3" /> Refresh GPS
               </button>
             )}
             <button
               onClick={() => setShowManualInput(true)}
-              className="text-green-700 text-xs hover:underline"
+              className="text-green-700 text-xs hover:underline flex items-center gap-1"
             >
-              📝 Ubah Manual
+              <FileText className="w-3 h-3" /> Ubah Manual
             </button>
           </div>
         </div>
