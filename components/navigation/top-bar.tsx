@@ -28,11 +28,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-30 md:hidden bg-white/80 backdrop-blur-xl border-b border-gray-100/50">
-      <div className="flex items-center justify-between h-12 px-3">
+      <div className="flex items-center justify-between h-14 px-3">
         {/* Left: App Icon → opens sidebar */}
         <button
           onClick={onMenuClick}
-          className="w-9 h-9 rounded-full overflow-hidden active:scale-95 transition-transform"
+          className="w-11 h-11 rounded-full overflow-hidden active:scale-95 transition-transform"
           aria-label="Open menu"
         >
           <img
@@ -43,15 +43,15 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </button>
 
         {/* Center: Page Title */}
-        <h1 className="text-sm font-bold text-gray-900">{pageTitle}</h1>
+        <h1 className="text-base font-bold text-gray-900">{pageTitle}</h1>
 
         {/* Right: Settings */}
         <button
           onClick={() => router.push('/settings')}
-          className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100 active:scale-95 transition-all"
+          className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 active:scale-95 transition-all"
           aria-label="Settings"
         >
-          <Settings className="w-5 h-5 text-gray-600" />
+          <Settings className="w-6 h-6 text-gray-600" />
         </button>
       </div>
     </header>

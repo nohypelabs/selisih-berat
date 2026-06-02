@@ -143,7 +143,7 @@ export default function ProtectedLayout({
       </aside>
 
       {/* Main Content */}
-      <div className="md:ml-60 pt-12 md:pt-0">
+      <div className="md:ml-60 pt-14 md:pt-0">
         {children}
       </div>
 
