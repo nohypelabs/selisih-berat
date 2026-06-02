@@ -42,7 +42,7 @@ export default function LoginPage() {
         }
 
         showToast('Login berhasil! Selamat datang kembali', 'success')
-        router.push('/entry')
+        router.push('/dashboard')
       } else {
         showToast(result.message || 'Login gagal. Periksa username dan password Anda', 'error')
       }

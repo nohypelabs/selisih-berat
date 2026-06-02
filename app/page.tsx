@@ -32,7 +32,7 @@ export default function HomePage() {
     // Check if already logged in
     const token = localStorage.getItem('accessToken')
     if (token) {
-      router.push('/entry')
+      router.push('/dashboard')
     }
     // Trigger animations
     setIsVisible(true)

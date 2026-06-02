@@ -66,7 +66,7 @@ export default function SignupPage() {
         localStorage.setItem('user', JSON.stringify(result.data.user))
 
         showToast('Registrasi berhasil! Selamat datang', 'success')
-        router.push('/entry')
+        router.push('/dashboard')
       } else {
         showToast(result.message || 'Registrasi gagal. Coba username lain', 'error')
       }
