@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { EntriesTable } from '@/components/tables/entries-table'
 import { exportToExcel, exportToCSV, generateExportFilename } from '@/lib/utils/export'
 import type { Entry } from '@/lib/types/entry'
 import type { ExportEntry } from '@/lib/utils/export'
+import {
+  Database, FileText, Filter, Download, CheckCircle, XCircle, Trash2,
+  RotateCcw, Search, Calendar, Loader2, Sheet, FileSpreadsheet
+} from 'lucide-react'
 
 export default function DataManagementPage() {
   const router = useRouter()
@@ -298,226 +299,222 @@ export default function DataManagementPage() {
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
-          <p className="text-gray-600">You need admin privileges to access this page.</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center pb-20">
+        <div className="text-center px-4">
+          <XCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Access Denied</h1>
+          <p className="text-sm text-gray-500">Halaman ini khusus untuk admin.</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 pb-24">
+      <div className="px-4 py-4 max-w-lg mx-auto">
+
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Data Management</h1>
-          <p className="text-gray-600">Manage and export all entry data</p>
+        <div className="mb-4">
+          <h1 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            <Database className="w-5 h-5 text-gray-600" />
+            Data Management
+          </h1>
+          <p className="text-xs text-gray-500 mt-0.5">Kelola dan export data entry</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <div className="flex items-center justify-between">
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-50 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-primary-600" />
+              </div>
               <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Total Entries</p>
-                <p className="text-3xl font-bold text-gray-900">{entries.length}</p>
-              </div>
-              <div className="bg-primary-100 p-4 rounded-lg">
-                <svg className="w-8 h-8 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-gray-600 mb-1">Filtered Entries</p>
-                <p className="text-3xl font-bold text-gray-900">{filteredEntries.length}</p>
-              </div>
-              <div className="bg-green-100 p-4 rounded-lg">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Filters and Export */}
-        <Card className="mb-8">
-          <div className="space-y-6">
-            {/* Filter Controls */}
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Filters</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Search */}
-                <Input
-                  type="text"
-                  placeholder="Search by Nama or No Resi..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-
-                {/* Status Filter */}
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                >
-                  <option value="">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="approved">Approved</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-
-                {/* Date From */}
-                <Input
-                  type="date"
-                  placeholder="From Date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="w-full"
-                />
-
-                {/* Date To */}
-                <Input
-                  type="date"
-                  placeholder="To Date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Filter Actions */}
-              <div className="flex gap-2 mt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={resetFilters}
-                >
-                  Reset Filters
-                </Button>
-                <div className="text-sm text-gray-600 flex items-center ml-2">
-                  Showing {filteredEntries.length} of {entries.length} entries
-                </div>
-              </div>
-            </div>
-
-            {/* Bulk Actions */}
-            <div className="pt-4 border-t">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">
-                Bulk Actions {selectedEntries.size > 0 && (
-                  <span className="text-sm font-normal text-gray-600">
-                    ({selectedEntries.size} selected)
-                  </span>
-                )}
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={() => handleBulkUpdate('approved')}
-                  disabled={bulkActionLoading || selectedEntries.size === 0}
-                  loading={bulkActionLoading}
-                  className="flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Bulk Approve
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() => handleBulkUpdate('rejected')}
-                  disabled={bulkActionLoading || selectedEntries.size === 0}
-                  loading={bulkActionLoading}
-                  className="flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Bulk Reject
-                </Button>
-                <Button
-                  variant="danger"
-                  size="md"
-                  onClick={handleBulkDelete}
-                  disabled={bulkActionLoading || selectedEntries.size === 0}
-                  loading={bulkActionLoading}
-                  className="flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Bulk Delete
-                </Button>
-                {selectedEntries.size > 0 && (
-                  <Button
-                    variant="outline"
-                    size="md"
-                    onClick={() => setSelectedEntries(new Set())}
-                    disabled={bulkActionLoading}
-                    className="flex items-center gap-2"
-                  >
-                    Clear Selection
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Export Buttons */}
-            <div className="pt-4 border-t">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Export Data</h2>
-              <div className="flex gap-3">
-                <Button
-                  variant="primary"
-                  size="md"
-                  onClick={handleExportExcel}
-                  disabled={exporting || filteredEntries.length === 0}
-                  loading={exporting}
-                  className="flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Export to Excel
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={handleExportCSV}
-                  disabled={exporting || filteredEntries.length === 0}
-                  loading={exporting}
-                  className="flex items-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Export to CSV
-                </Button>
+                <p className="text-[10px] text-gray-400">Total Entries</p>
+                <p className="text-xl font-bold text-gray-900">{entries.length}</p>
               </div>
             </div>
           </div>
-        </Card>
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+                <Filter className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400">Filtered</p>
+                <p className="text-xl font-bold text-gray-900">{filteredEntries.length}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-50">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+              <Search className="w-4 h-4 text-gray-400" />
+              Filter
+            </h2>
+          </div>
+
+          <div className="p-4 space-y-3">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Cari nama atau no resi..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+              />
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all bg-white"
+            >
+              <option value="">Semua Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+            </select>
+
+            {/* Date Range */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
+                  <Calendar className="w-3 h-3" />
+                  Dari
+                </label>
+                <input
+                  type="date"
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-1 text-[10px] text-gray-400 mb-1">
+                  <Calendar className="w-3 h-3" />
+                  Sampai
+                </label>
+                <input
+                  type="date"
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-all"
+                />
+              </div>
+            </div>
+
+            {/* Reset */}
+            <button
+              onClick={resetFilters}
+              className="w-full py-2 text-xs font-medium text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 active:bg-gray-200 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset Filter
+            </button>
+          </div>
+        </div>
+
+        {/* Bulk Actions */}
+        {selectedEntries.size > 0 && (
+          <div className="bg-white rounded-2xl border border-primary-200 shadow-sm overflow-hidden mb-4">
+            <div className="px-4 py-3 border-b border-primary-50 bg-primary-50/50">
+              <h2 className="text-sm font-semibold text-primary-900">
+                Bulk Actions ({selectedEntries.size} dipilih)
+              </h2>
+            </div>
+
+            <div className="p-3 grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleBulkUpdate('approved')}
+                disabled={bulkActionLoading}
+                className="py-2.5 rounded-xl text-xs font-medium text-white bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                Approve
+              </button>
+              <button
+                onClick={() => handleBulkUpdate('rejected')}
+                disabled={bulkActionLoading}
+                className="py-2.5 rounded-xl text-xs font-medium text-white bg-amber-600 hover:bg-amber-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                Reject
+              </button>
+              <button
+                onClick={handleBulkDelete}
+                disabled={bulkActionLoading}
+                className="py-2.5 rounded-xl text-xs font-medium text-white bg-red-600 hover:bg-red-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {bulkActionLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                Hapus
+              </button>
+              <button
+                onClick={() => setSelectedEntries(new Set())}
+                disabled={bulkActionLoading}
+                className="py-2.5 rounded-xl text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Export Buttons */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-4">
+          <div className="px-4 py-3 border-b border-gray-50">
+            <h2 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+              <Download className="w-4 h-4 text-gray-400" />
+              Export Data
+            </h2>
+          </div>
+
+          <div className="p-3 grid grid-cols-2 gap-2">
+            <button
+              onClick={handleExportExcel}
+              disabled={exporting || filteredEntries.length === 0}
+              className="py-2.5 rounded-xl text-xs font-medium text-white bg-green-600 hover:bg-green-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sheet className="w-3.5 h-3.5" />}
+              Excel
+            </button>
+            <button
+              onClick={handleExportCSV}
+              disabled={exporting || filteredEntries.length === 0}
+              className="py-2.5 rounded-xl text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+            >
+              {exporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileSpreadsheet className="w-3.5 h-3.5" />}
+              CSV
+            </button>
+          </div>
+        </div>
 
         {/* Entries Table */}
-        <Card>
-          <EntriesTable
-            entries={filteredEntries}
-            loading={loading}
-            onDelete={handleDelete}
-            isAdmin={true}
-            selectedEntries={selectedEntries}
-            onSelectionChange={setSelectedEntries}
-          />
-        </Card>
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-50">
+            <h2 className="text-sm font-semibold text-gray-900">
+              Data Entries
+            </h2>
+          </div>
+
+          <div className="overflow-x-auto">
+            <EntriesTable
+              entries={filteredEntries}
+              loading={loading}
+              onDelete={handleDelete}
+              isAdmin={true}
+              selectedEntries={selectedEntries}
+              onSelectionChange={setSelectedEntries}
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
