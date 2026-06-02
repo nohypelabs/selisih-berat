@@ -52,8 +52,8 @@ export default function ProtectedLayout({
   }
 
   const navItems = [
-    { href: '/entry', label: 'Entry', icon: '➕', roles: ['user', 'admin'] },
     { href: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['user', 'admin'] },
+    { href: '/entry', label: 'Entry', icon: '➕', roles: ['user', 'admin'] },
     { href: '/leaderboard', label: 'Leaderboard', icon: '🏆', roles: ['user', 'admin'] },
     { href: '/my-entries', label: 'My Entries', icon: '📝', roles: ['user'] },
     { href: '/profile', label: 'Profile', icon: '👤', roles: ['user', 'admin'] },
