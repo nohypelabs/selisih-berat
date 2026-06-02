@@ -8,7 +8,7 @@ import { PhotoUpload } from '@/components/entry/photo-upload'
 import { useToast } from '@/components/ui/toast'
 import { calculateSelisih } from '@/lib/utils/helpers'
 import { formatRupiah } from '@/lib/utils/earnings'
-import { Plus, ScanBarcode, User, CheckCircle, AlertTriangle, XCircle, Coins, Loader2, Check, Camera } from 'lucide-react'
+import { Plus, ScanBarcode, User, CheckCircle, AlertTriangle, XCircle, Coins, Loader2, Check, Camera, Lightbulb } from 'lucide-react'
 import type { LocationInfo } from '@/lib/types/entry'
 
 export default function EntryPage() {
@@ -355,8 +355,8 @@ export default function EntryPage() {
                   <span className="text-gray-500">Daily Bonus</span>
                   <span className="text-gray-600">{formatRupiah(dailyBonus)}</span>
                 </div>
-                <p className="text-[10px] text-green-600 pt-1">
-                  💡 Entry setiap hari buat dapet daily bonus!
+                <p className="text-[10px] text-green-600 pt-1 flex items-center gap-1">
+                  <Lightbulb className="w-3 h-3" /> Entry setiap hari buat dapet daily bonus!
                 </p>
               </div>
             </div>
