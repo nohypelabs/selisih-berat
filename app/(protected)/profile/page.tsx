@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/toast'
 import { authFetch } from '@/lib/utils/api'
-import { User, Mail, Shield, Calendar, Edit3, LogOut, ChevronRight, Lock } from 'lucide-react'
+import { compressAvatar, validateAvatarFile } from '@/lib/utils/avatar'
+import { User, Mail, Shield, Calendar, Edit3, LogOut, ChevronRight, Lock, Camera, Trash2 } from 'lucide-react'
+import { haptics } from '@/lib/utils/haptics'
 
 interface UserProfile {
   username: string
@@ -14,13 +16,16 @@ interface UserProfile {
   created_at: string
   last_login: string | null
   is_active: boolean
+  avatar_url: string | null
 }
 
 export default function ProfilePage() {
   const router = useRouter()
   const { showToast } = useToast()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [editMode, setEditMode] = useState(false)
   const [formData, setFormData] = useState({
@@ -64,6 +69,95 @@ export default function ProfilePage() {
       showToast('Gagal memuat profil', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAvatarSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Reset input so same file can be selected again
+    e.target.value = ''
+
+    // Validate file
+    const validationError = validateAvatarFile(file)
+    if (validationError) {
+      showToast(validationError, 'error')
+      return
+    }
+
+    haptics.medium()
+    setUploadingAvatar(true)
+
+    try {
+      // Compress image
+      const compressed = await compressAvatar(file)
+      const compressedFile = new File([compressed], 'avatar.jpg', { type: 'image/jpeg' })
+
+      // Upload via API
+      const userData = localStorage.getItem('user')
+      const username = userData ? JSON.parse(userData).username : null
+
+      if (!username) {
+        showToast('Username tidak ditemukan', 'error')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', compressedFile)
+
+      const response = await authFetch(`/api/users/${username}/avatar`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        showToast('Foto profil berhasil diupdate!', 'success')
+        haptics.success()
+        // Refresh profile to get new avatar URL
+        fetchProfile()
+      } else {
+        showToast(result.message || 'Gagal upload foto', 'error')
+        haptics.error()
+      }
+    } catch (error) {
+      console.error('Avatar upload error:', error)
+      showToast('Terjadi kesalahan saat upload', 'error')
+      haptics.error()
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (!profile?.avatar_url) return
+
+    haptics.medium()
+    setUploadingAvatar(true)
+
+    try {
+      const userData = localStorage.getItem('user')
+      const username = userData ? JSON.parse(userData).username : null
+
+      if (!username) return
+
+      const response = await authFetch(`/api/users/${username}/avatar`, {
+        method: 'DELETE',
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        showToast('Foto profil dihapus', 'info')
+        fetchProfile()
+      } else {
+        showToast(result.message || 'Gagal menghapus foto', 'error')
+      }
+    } catch (error) {
+      console.error('Avatar delete error:', error)
+      showToast('Terjadi kesalahan', 'error')
+    } finally {
+      setUploadingAvatar(false)
     }
   }
 
@@ -127,9 +221,60 @@ export default function ProfilePage() {
         {profile && (
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4">
             <div className="flex items-center gap-4">
-              {/* Avatar */}
-              <div className="w-16 h-16 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
-                <span className="text-2xl font-bold text-white">{initial}</span>
+              {/* Avatar with upload overlay */}
+              <div className="relative flex-shrink-0">
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="w-16 h-16 rounded-full overflow-hidden border-2 border-gray-200 hover:border-primary-400 transition-colors disabled:opacity-50"
+                >
+                  {profile.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full gradient-primary flex items-center justify-center">
+                      <span className="text-2xl font-bold text-white">{initial}</span>
+                    </div>
+                  )}
+                </button>
+
+                {/* Camera overlay */}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingAvatar}
+                  className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-primary-600 text-white flex items-center justify-center shadow-md hover:bg-primary-700 transition-colors disabled:opacity-50"
+                >
+                  {uploadingAvatar ? (
+                    <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  ) : (
+                    <Camera className="w-3 h-3" />
+                  )}
+                </button>
+
+                {/* Delete button (only if avatar exists) */}
+                {profile.avatar_url && !uploadingAvatar && (
+                  <button
+                    onClick={handleAvatarDelete}
+                    className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center shadow-md hover:bg-red-600 transition-colors"
+                  >
+                    <Trash2 className="w-2.5 h-2.5" />
+                  </button>
+                )}
+
+                {/* Hidden file input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleAvatarSelect}
+                  className="hidden"
+                />
               </div>
 
               {/* User Info */}

@@ -126,6 +126,12 @@ export default function LeaderboardPage() {
     return username.charAt(0).toUpperCase()
   }
 
+  const getAvatarUrl = (username: string): string | null => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!supabaseUrl) return null
+    return `${supabaseUrl}/storage/v1/object/public/avatars/${username}.jpg`
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-3 pb-16">
@@ -234,7 +240,24 @@ export default function LeaderboardPage() {
 
                   {/* Avatar */}
                   <div className="flex-shrink-0">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                    {getAvatarUrl(entry.username) ? (
+                      <img
+                        src={getAvatarUrl(entry.username)!}
+                        alt={entry.username}
+                        className="w-10 h-10 rounded-full object-cover shadow-md border-2 border-white"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          const target = e.target as HTMLImageElement
+                          target.style.display = 'none'
+                          const fallback = target.nextElementSibling as HTMLElement
+                          if (fallback) fallback.style.display = 'flex'
+                        }}
+                      />
+                    ) : null}
+                    <div
+                      className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-md"
+                      style={{ display: getAvatarUrl(entry.username) ? 'none' : 'flex' }}
+                    >
                       {getInitials(entry.username)}
                     </div>
                   </div>
@@ -286,7 +309,23 @@ export default function LeaderboardPage() {
 
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                      {getAvatarUrl(data.currentUser.username) ? (
+                        <img
+                          src={getAvatarUrl(data.currentUser.username)!}
+                          alt={data.currentUser.username}
+                          className="w-10 h-10 rounded-full object-cover shadow-md border-2 border-white"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            target.style.display = 'none'
+                            const fallback = target.nextElementSibling as HTMLElement
+                            if (fallback) fallback.style.display = 'flex'
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-white font-bold text-sm shadow-md"
+                        style={{ display: getAvatarUrl(data.currentUser.username) ? 'none' : 'flex' }}
+                      >
                         {getInitials(data.currentUser.username)}
                       </div>
                     </div>

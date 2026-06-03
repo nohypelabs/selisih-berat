@@ -134,8 +134,24 @@ export default function ProtectedLayout({
         <div className="px-3 py-3 border-t border-gray-100">
           {user && (
             <div className="flex items-center gap-2.5 px-3 py-2 mb-2">
-              <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
-                <span className="text-xs font-bold text-primary-700">
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-100 flex items-center justify-center">
+                {process.env.NEXT_PUBLIC_SUPABASE_URL ? (
+                  <img
+                    src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${user.username}.jpg`}
+                    alt={user.username}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                      const fallback = target.nextElementSibling as HTMLElement
+                      if (fallback) fallback.style.display = 'flex'
+                    }}
+                  />
+                ) : null}
+                <span
+                  className="text-xs font-bold text-primary-700"
+                  style={{ display: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'none' : 'flex' }}
+                >
                   {(user.full_name || user.username).charAt(0).toUpperCase()}
                 </span>
               </div>

@@ -274,6 +274,7 @@ export type Database = {
           security_question: string | null
           updated_at: string | null
           username: string
+          avatar_url: string | null
         }
         Insert: {
           created_at?: string | null
@@ -288,6 +289,7 @@ export type Database = {
           security_question?: string | null
           updated_at?: string | null
           username: string
+          avatar_url?: string | null
         }
         Update: {
           created_at?: string | null
@@ -302,6 +304,7 @@ export type Database = {
           security_question?: string | null
           updated_at?: string | null
           username?: string
+          avatar_url?: string | null
         }
         Relationships: []
       }

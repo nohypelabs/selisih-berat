@@ -21,7 +21,7 @@ export const GET = withAuth(async (request, { params, user }) => {
 
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('username, email, full_name, role, created_at, last_login, is_active')
+      .select('username, email, full_name, role, created_at, last_login, is_active, avatar_url')
       .eq('username', username)
       .single()
 
