@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { InstallPrompt } from '@/components/ui/install-prompt'
 import { Footer } from '@/components/ui/footer'
 import { BottomNav } from '@/components/navigation/bottom-nav'
@@ -147,7 +148,17 @@ export default function ProtectedLayout({
 
       {/* Main Content */}
       <div className="md:ml-60 pt-14 md:pt-0">
-        {children}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
         <Footer />
       </div>
 
