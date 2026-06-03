@@ -1,16 +1,17 @@
 'use client'
 
 import { motion, AnimatePresence } from 'framer-motion'
-import { LogOut, Clock } from 'lucide-react'
+import { LogIn, LogOut, Clock } from 'lucide-react'
 import { haptics } from '@/lib/utils/haptics'
 import { useEffect } from 'react'
 
 interface SessionExpiredModalProps {
   isOpen: boolean
   onLogin: () => void
+  onLogout: () => void
 }
 
-export function SessionExpiredModal({ isOpen, onLogin }: SessionExpiredModalProps) {
+export function SessionExpiredModal({ isOpen, onLogin, onLogout }: SessionExpiredModalProps) {
   useEffect(() => {
     if (isOpen) {
       haptics.error()
@@ -57,14 +58,21 @@ export function SessionExpiredModal({ isOpen, onLogin }: SessionExpiredModalProp
               </p>
             </div>
 
-            {/* Action */}
-            <div className="px-6 pb-6">
+            {/* Actions */}
+            <div className="px-6 pb-6 space-y-2">
               <button
                 onClick={onLogin}
                 className="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-xl active:scale-[0.98] transition-all shadow-lg shadow-primary-200"
               >
-                <LogOut className="w-4 h-4" />
+                <LogIn className="w-4 h-4" />
                 Login Kembali
+              </button>
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl active:scale-[0.98] transition-all"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
               </button>
             </div>
           </motion.div>

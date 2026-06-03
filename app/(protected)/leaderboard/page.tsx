@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
+import { authFetch } from '@/lib/utils/api'
 
 type LeaderboardType = 'daily' | 'alltime'
 
@@ -50,12 +51,7 @@ export default function LeaderboardPage() {
     setLoading(true)
     setError(null)
     try {
-      const token = localStorage.getItem('accessToken')
-      const response = await fetch(`/api/leaderboard?type=${type}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const response = await authFetch(`/api/leaderboard?type=${type}`)
 
       const result = await response.json()
 

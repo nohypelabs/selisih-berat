@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/toast'
+import { authFetch } from '@/lib/utils/api'
 import { User, Mail, Shield, Calendar, Edit3, LogOut, ChevronRight, Lock } from 'lucide-react'
 
 interface UserProfile {
@@ -39,7 +40,6 @@ export default function ProfilePage() {
 
   const fetchProfile = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
       const userData = localStorage.getItem('user')
       const username = userData ? JSON.parse(userData).username : null
 
@@ -49,9 +49,7 @@ export default function ProfilePage() {
         return
       }
 
-      const response = await fetch(`/api/users/${username}/profile`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
+      const response = await authFetch(`/api/users/${username}/profile`)
 
       const result = await response.json()
       if (result.success) {
@@ -74,7 +72,6 @@ export default function ProfilePage() {
     setSaving(true)
 
     try {
-      const token = localStorage.getItem('accessToken')
       const userData = localStorage.getItem('user')
       const username = userData ? JSON.parse(userData).username : null
 
@@ -83,12 +80,9 @@ export default function ProfilePage() {
         return
       }
 
-      const response = await fetch(`/api/users/${username}/profile`, {
+      const response = await authFetch(`/api/users/${username}/profile`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       })
 

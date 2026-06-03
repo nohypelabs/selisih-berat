@@ -7,6 +7,7 @@ import { BarcodeScanner } from '@/components/entry/barcode-scanner'
 import { PhotoUpload } from '@/components/entry/photo-upload'
 import { useToast } from '@/components/ui/toast'
 import { haptics } from '@/lib/utils/haptics'
+import { authFetch } from '@/lib/utils/api'
 import { calculateSelisih } from '@/lib/utils/helpers'
 import { formatRupiah } from '@/lib/utils/earnings'
 import { Plus, ScanBarcode, User, CheckCircle, AlertTriangle, XCircle, Coins, Loader2, Check, Camera, Lightbulb } from 'lucide-react'
@@ -79,25 +80,9 @@ export default function EntryPage() {
 
   const fetchEarningsSettings = async () => {
     try {
-      const token = localStorage.getItem('accessToken')
+      const response = await authFetch('/api/settings')
 
-      if (!token) {
-        console.log('No access token available for fetching earnings settings')
-        return
-      }
-
-      const response = await fetch('/api/settings', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status !== 401) {
-          console.error('Error fetching earnings settings:', response.status)
-        }
-        return
-      }
+      if (!response.ok) return
 
       const data = await response.json()
 
@@ -122,14 +107,9 @@ export default function EntryPage() {
     setLoading(true)
 
     try {
-      const token = localStorage.getItem('accessToken')
-
-      const response = await fetch('/api/entries', {
+      const response = await authFetch('/api/entries', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
           berat_resi: parseFloat(formData.berat_resi),

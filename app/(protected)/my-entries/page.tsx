@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { EntriesTable } from '@/components/tables/entries-table'
 import { ErrorState } from '@/components/ui/error-state'
+import { authFetch } from '@/lib/utils/api'
 import type { Entry } from '@/lib/types/entry'
 import {
   FileText, Filter, Search, Calendar, RotateCcw, Info
@@ -50,7 +51,6 @@ export default function MyEntriesPage() {
     try {
       setLoading(true)
       setError(null)
-      const token = localStorage.getItem('accessToken')
       const userData = localStorage.getItem('user')
 
       if (!userData) return
@@ -62,9 +62,7 @@ export default function MyEntriesPage() {
       params.append('limit', '10000')
       params.append('created_by', user.username)
 
-      const response = await fetch(`/api/entries?${params.toString()}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
+      const response = await authFetch(`/api/entries?${params.toString()}`)
 
       const data = await response.json()
 

@@ -191,6 +191,7 @@ export default function ProtectedLayout({
           localStorage.removeItem('user')
           router.push('/')
         }}
+        onLogout={handleLogout}
       />
     </div>
   )

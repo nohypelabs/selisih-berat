@@ -6,6 +6,7 @@ import { EntriesTable } from '@/components/tables/entries-table'
 import { ErrorState } from '@/components/ui/error-state'
 import { ConfirmModal } from '@/components/ui/confirm-modal'
 import { useToast } from '@/components/ui/toast'
+import { authFetch } from '@/lib/utils/api'
 import { exportToExcel, exportToCSV, generateExportFilename } from '@/lib/utils/export'
 import type { Entry } from '@/lib/types/entry'
 import type { ExportEntry } from '@/lib/utils/export'
@@ -75,15 +76,12 @@ export default function DataManagementPage() {
     try {
       setLoading(true)
       setError(null)
-      const token = localStorage.getItem('accessToken')
 
       // Build query params
       const params = new URLSearchParams()
       params.append('limit', '10000') // Get all entries for filtering
 
-      const response = await fetch(`/api/entries?${params.toString()}`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
+      const response = await authFetch(`/api/entries?${params.toString()}`)
 
       const data = await response.json()
 
@@ -151,10 +149,8 @@ export default function DataManagementPage() {
       confirmText: 'Hapus',
       onConfirm: async () => {
         try {
-          const token = localStorage.getItem('accessToken')
-          const response = await fetch(`/api/entries/${id}`, {
+          const response = await authFetch(`/api/entries/${id}`, {
             method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` },
           })
           const data = await response.json()
           if (data.success) {
@@ -250,13 +246,9 @@ export default function DataManagementPage() {
       onConfirm: async () => {
         try {
           setBulkActionLoading(true)
-          const token = localStorage.getItem('accessToken')
-          const response = await fetch('/api/entries/bulk-update', {
+          const response = await authFetch('/api/entries/bulk-update', {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               ids: Array.from(selectedEntries),
               status
@@ -296,13 +288,9 @@ export default function DataManagementPage() {
       onConfirm: async () => {
         try {
           setBulkActionLoading(true)
-          const token = localStorage.getItem('accessToken')
-          const response = await fetch('/api/entries/bulk-delete', {
+          const response = await authFetch('/api/entries/bulk-delete', {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               ids: Array.from(selectedEntries)
             })
