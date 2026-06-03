@@ -6,7 +6,7 @@ import {
   Sparkles, Palette, Layout, Navigation, Image as ImageIcon,
   MapPin, Shield, BarChart3, Clock, Smartphone,
   AlertTriangle, RefreshCw, Zap, TrendingUp,
-  Camera, LogIn, Users, Timer
+  Camera, LogIn, Users, Timer, Trophy
 } from 'lucide-react'
 
 interface ChangeItem {
@@ -62,6 +62,12 @@ const timeline: TimelineEntry[] = [
         title: 'Leaderboard Polish',
         description: 'Ganti emoji dengan Lucide icons. Earnings lebih prominent dengan font hijau tebal. Tab pakai ikon (Clock, Crown). Badge level dengan ikon. Layout lebih clean.',
         category: 'ui'
+      },
+      {
+        icon: <Sparkles className="w-4 h-4" />,
+        title: 'Pop-up Update',
+        description: 'Modal "Apa yang Baru?" muncul sekali saat pertama login. Glassmorphism style, daftar semua update terbaru.',
+        category: 'ux'
       },
     ]
   },

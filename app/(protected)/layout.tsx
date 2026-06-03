@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PullToRefresh } from '@/components/ui/pull-to-refresh'
 import { SessionExpiredModal } from '@/components/ui/session-expired-modal'
+import { WhatsNewModal } from '@/components/ui/whats-new-modal'
 import { setSessionExpiredCallback } from '@/lib/utils/api'
 import { InstallPrompt } from '@/components/ui/install-prompt'
 import { Footer } from '@/components/ui/footer'
@@ -39,6 +40,7 @@ export default function ProtectedLayout({
   const [user, setUser] = useState<any>(null)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
   const [isSessionExpired, setIsSessionExpired] = useState(false)
+  const [showWhatsNew, setShowWhatsNew] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
@@ -48,6 +50,12 @@ export default function ProtectedLayout({
       router.push('/')
     } else if (userData) {
       setUser(JSON.parse(userData))
+
+      // Show "What's New" modal once per user
+      const seenKey = 'whats_new_seen_v2'
+      if (!localStorage.getItem(seenKey)) {
+        setTimeout(() => setShowWhatsNew(true), 800)
+      }
     }
 
     // Register session expired callback
@@ -208,6 +216,15 @@ export default function ProtectedLayout({
           router.push('/')
         }}
         onLogout={handleLogout}
+      />
+
+      {/* What's New Modal */}
+      <WhatsNewModal
+        isOpen={showWhatsNew}
+        onClose={() => {
+          setShowWhatsNew(false)
+          localStorage.setItem('whats_new_seen_v2', 'true')
+        }}
       />
     </div>
   )
