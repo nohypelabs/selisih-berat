@@ -48,7 +48,7 @@ export class UserRepository {
   async findById(id: number): Promise<Omit<User, 'password'> | null> {
     const { data, error } = await supabaseAdmin
       .from('users')
-      .select('id, username, email, full_name, role, is_active, created_at, updated_at, last_login, security_answer, security_question, avatar_url')
+      .select('*')
       .eq('id', id)
       .single()
 
@@ -70,7 +70,7 @@ export class UserRepository {
   ): Promise<Omit<User, 'password'>[]> {
     let query = supabaseAdmin
       .from('users')
-      .select('id, username, email, full_name, role, is_active, created_at, updated_at, last_login, security_answer, security_question, avatar_url')
+      .select('*')
       .range(offset, offset + limit - 1)
 
     if (filter?.search) {

@@ -19,13 +19,31 @@ export const GET = withAuth(async (request, { params, user }) => {
       )
     }
 
-    const { data, error } = await supabaseAdmin
+    // Try with avatar_url first, fallback without it if column doesn't exist yet
+    let { data, error } = await supabaseAdmin
       .from('users')
       .select('username, email, full_name, role, created_at, last_login, is_active, avatar_url')
       .eq('username', username)
       .single()
 
-    if (error || !data) {
+    if (error) {
+      // Fallback: retry without avatar_url (column may not exist yet)
+      const fallback = await supabaseAdmin
+        .from('users')
+        .select('username, email, full_name, role, created_at, last_login, is_active')
+        .eq('username', username)
+        .single()
+
+      if (fallback.error || !fallback.data) {
+        return NextResponse.json(
+          { success: false, message: 'User not found' },
+          { status: 404 }
+        )
+      }
+      data = { ...fallback.data, avatar_url: null }
+    }
+
+    if (!data) {
       return NextResponse.json(
         { success: false, message: 'User not found' },
         { status: 404 }
