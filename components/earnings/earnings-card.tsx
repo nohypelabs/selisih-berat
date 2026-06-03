@@ -19,6 +19,7 @@ interface EarningsData {
   entries_earnings: number
   bonus_earnings: number
   total_earnings: number
+  period?: string
 }
 
 interface ChartPoint {
@@ -27,9 +28,10 @@ interface ChartPoint {
   entries: number
 }
 
-type Period = '1d' | '7d' | '30d' | 'all'
+type Period = '12h' | '1d' | '7d' | '30d' | 'all'
 
 const periodOptions: { key: Period; label: string }[] = [
+  { key: '12h', label: '12 Jam' },
   { key: '1d', label: '1D' },
   { key: '7d', label: '7D' },
   { key: '30d', label: '30D' },
@@ -39,6 +41,15 @@ const periodOptions: { key: Period; label: string }[] = [
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr)
   return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })
+}
+
+const getWIBSessionLabel = (): string => {
+  const now = new Date()
+  const wibHour = (now.getUTCHours() + 7) % 24
+  if (wibHour >= 6 && wibHour < 18) {
+    return 'Sesi Pagi (06:00-18:00 WIB)'
+  }
+  return 'Sesi Malam (18:00-06:00 WIB)'
 }
 
 const CustomTooltip = ({ active, payload }: any) => {
@@ -58,7 +69,7 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
   const [chartData, setChartData] = useState<ChartPoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [period, setPeriod] = useState<Period>('7d')
+  const [period, setPeriod] = useState<Period>('12h')
 
   useEffect(() => {
     fetchEarnings()
@@ -164,10 +175,15 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
         <p className="text-xs text-gray-500 mt-0.5">
           {formatNumber(earnings.total_entries)} entries • {earnings.days_with_entries} hari
         </p>
+        {period === '12h' && (
+          <p className="text-[10px] text-green-600 font-medium mt-0.5">
+            {getWIBSessionLabel()}
+          </p>
+        )}
       </div>
 
-      {/* Chart — only show for 7d+ */}
-      {period !== '1d' && chartData.length > 1 && (
+      {/* Chart — only show for 1d+ */}
+      {period !== '12h' && period !== '1d' && chartData.length > 1 && (
         <div className="px-2 pb-2">
           <div className="h-28">
             <ResponsiveContainer width="100%" height="100%">

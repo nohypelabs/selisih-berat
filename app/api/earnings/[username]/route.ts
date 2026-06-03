@@ -19,15 +19,37 @@ export const GET = withAuth(async (request, { params, user }) => {
 
     // Get period filter from query params
     const url = new URL(request.url)
-    const period = url.searchParams.get('period') || '7d' // 1d, 7d, 30d, all
+    const period = url.searchParams.get('period') || '12h' // 12h, 1d, 7d, 30d, all
 
     // Calculate date range based on period
     let startDate: string | null = null
     if (period !== 'all') {
-      const now = new Date()
-      const days = period === '1d' ? 1 : period === '7d' ? 7 : 30
-      now.setDate(now.getDate() - days)
-      startDate = now.toISOString()
+      if (period === '12h') {
+        // 12-hour fixed periods in WIB (UTC+7)
+        // Morning: 06:00-18:00 WIB | Evening: 18:00-06:00 WIB
+        const nowUTC = new Date()
+        const wibHour = (nowUTC.getUTCHours() + 7) % 24
+
+        const periodStartUTC = new Date(nowUTC)
+        if (wibHour >= 6 && wibHour < 18) {
+          // Morning period started at 06:00 WIB = 23:00 UTC previous day
+          periodStartUTC.setUTCDate(periodStartUTC.getUTCDate() - 1)
+          periodStartUTC.setUTCHours(23, 0, 0, 0)
+        } else if (wibHour >= 18) {
+          // Evening period started at 18:00 WIB = 11:00 UTC today
+          periodStartUTC.setUTCHours(11, 0, 0, 0)
+        } else {
+          // wibHour < 6: evening period started yesterday 18:00 WIB = 11:00 UTC
+          periodStartUTC.setUTCDate(periodStartUTC.getUTCDate() - 1)
+          periodStartUTC.setUTCHours(11, 0, 0, 0)
+        }
+        startDate = periodStartUTC.toISOString()
+      } else {
+        const now = new Date()
+        const days = period === '1d' ? 1 : period === '7d' ? 7 : 30
+        now.setDate(now.getDate() - days)
+        startDate = now.toISOString()
+      }
     }
 
     // Get settings for rates
@@ -64,11 +86,17 @@ export const GET = withAuth(async (request, { params, user }) => {
     // Count entries
     const totalEntries = entriesData?.length || 0
 
-    // Count unique days
+    // Count unique days (use WIB date for 12h period)
     const uniqueDates = new Set(
-      (entriesData || []).map(entry =>
-        new Date(entry.created_at || '').toISOString().split('T')[0]
-      )
+      (entriesData || []).map(entry => {
+        const d = new Date(entry.created_at || '')
+        if (period === '12h') {
+          // Convert to WIB (UTC+7) for date grouping
+          const wibMs = d.getTime() + 7 * 60 * 60 * 1000
+          return new Date(wibMs).toISOString().split('T')[0]
+        }
+        return d.toISOString().split('T')[0]
+      })
     )
     const daysWithEntries = uniqueDates.size
 
@@ -84,16 +112,24 @@ export const GET = withAuth(async (request, { params, user }) => {
       daily_bonus: dailyBonus,
       entries_earnings: entriesEarnings,
       bonus_earnings: bonusEarnings,
-      total_earnings: totalEarnings
+      total_earnings: totalEarnings,
+      period
     }
 
     // Build chart data — daily earnings breakdown
     let chartData: { date: string; earnings: number; entries: number }[] = []
     if (entriesData && entriesData.length > 0) {
-      // Group by date
+      // Group by date (use WIB date for 12h period)
       const dailyMap = new Map<string, number>()
       entriesData.forEach(entry => {
-        const date = new Date(entry.created_at || '').toISOString().split('T')[0]
+        const d = new Date(entry.created_at || '')
+        let date: string
+        if (period === '12h') {
+          const wibMs = d.getTime() + 7 * 60 * 60 * 1000
+          date = new Date(wibMs).toISOString().split('T')[0]
+        } else {
+          date = d.toISOString().split('T')[0]
+        }
         dailyMap.set(date, (dailyMap.get(date) || 0) + 1)
       })
 
