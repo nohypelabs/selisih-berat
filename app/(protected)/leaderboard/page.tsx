@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
 import { authFetch } from '@/lib/utils/api'
 
-type LeaderboardType = 'daily' | 'alltime'
+type LeaderboardType = '12h' | 'daily' | 'alltime'
 
 interface LeaderboardEntry {
   rank: number
@@ -24,7 +24,7 @@ interface LeaderboardData {
 
 export default function LeaderboardPage() {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<LeaderboardType>('alltime')
+  const [activeTab, setActiveTab] = useState<LeaderboardType>('12h')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<LeaderboardData | null>(null)
@@ -44,7 +44,7 @@ export default function LeaderboardPage() {
       setCurrentUsername(userData.username)
     }
 
-    fetchLeaderboard('alltime')
+    fetchLeaderboard('12h')
   }, [router])
 
   const fetchLeaderboard = async (type: LeaderboardType) => {
@@ -185,10 +185,20 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2 mb-3">
+        <div className="flex gap-1.5 mb-3">
+          <Button
+            onClick={() => handleTabChange('12h')}
+            className={`flex-1 text-xs py-2 ${
+              activeTab === '12h'
+                ? 'bg-primary-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300'
+            }`}
+          >
+            ⏰ 12 Jam
+          </Button>
           <Button
             onClick={() => handleTabChange('daily')}
-            className={`flex-1 text-sm ${
+            className={`flex-1 text-xs py-2 ${
               activeTab === 'daily'
                 ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300'
@@ -198,7 +208,7 @@ export default function LeaderboardPage() {
           </Button>
           <Button
             onClick={() => handleTabChange('alltime')}
-            className={`flex-1 text-sm ${
+            className={`flex-1 text-xs py-2 ${
               activeTab === 'alltime'
                 ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300'
@@ -215,7 +225,7 @@ export default function LeaderboardPage() {
               <p className="text-4xl mb-3">📊</p>
               <p className="text-base font-semibold text-gray-700">No Entries Yet</p>
               <p className="text-xs text-gray-500 mt-1">
-                {activeTab === 'daily' ? 'Belum ada entries hari ini' : 'Belum ada entries'}
+                {activeTab === '12h' ? 'Belum ada entries sesi ini' : activeTab === 'daily' ? 'Belum ada entries hari ini' : 'Belum ada entries'}
               </p>
             </div>
           ) : (
@@ -367,6 +377,9 @@ export default function LeaderboardPage() {
         <div className="card-mobile mt-3">
           <h3 className="font-bold text-sm text-gray-900 mb-2">📊 Leaderboard Info</h3>
           <div className="space-y-1.5 text-xs text-gray-600">
+            <p>
+              • <strong>12 Jam:</strong> Peringkat sesi aktif (06:00-18:00 / 18:00-06:00 WIB)
+            </p>
             <p>
               • <strong>Daily:</strong> Peringkat entries hari ini
             </p>

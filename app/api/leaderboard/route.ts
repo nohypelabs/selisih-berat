@@ -32,10 +32,122 @@ export async function GET(request: NextRequest) {
 
     // Get query params
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get('type') || 'alltime' // 'daily' or 'alltime'
+    const type = searchParams.get('type') || 'alltime' // '12h', 'daily', or 'alltime'
     const limit = parseInt(searchParams.get('limit') || '10')
 
-    if (type === 'daily') {
+    if (type === '12h') {
+      // 12-hour period leaderboard — query entries directly with WIB time window
+      const nowUTC = new Date()
+      const wibHour = (nowUTC.getUTCHours() + 7) % 24
+
+      const periodStartUTC = new Date(nowUTC)
+      if (wibHour >= 6 && wibHour < 18) {
+        periodStartUTC.setUTCDate(periodStartUTC.getUTCDate() - 1)
+        periodStartUTC.setUTCHours(23, 0, 0, 0)
+      } else if (wibHour >= 18) {
+        periodStartUTC.setUTCHours(11, 0, 0, 0)
+      } else {
+        periodStartUTC.setUTCDate(periodStartUTC.getUTCDate() - 1)
+        periodStartUTC.setUTCHours(11, 0, 0, 0)
+      }
+      const startDate = periodStartUTC.toISOString()
+
+      // Fetch entries in the 12h window
+      const { data: entriesData, error: entriesError } = await supabaseAdmin
+        .from('entries')
+        .select('created_by, created_at, berat_resi, berat_aktual, selisih')
+        .gte('created_at', startDate)
+        .not('created_by', 'is', null)
+
+      if (entriesError) {
+        console.error('12h leaderboard entries error:', entriesError)
+      }
+
+      // Aggregate by user
+      const userMap = new Map<string, { entries: number; earnings: number }>()
+      const settingsRes = await supabaseAdmin
+        .from('settings')
+        .select('key, value')
+        .in('key', ['rate_per_entry', 'daily_bonus'])
+
+      const settingsMap = (settingsRes.data || []).reduce((acc, s) => {
+        acc[s.key] = s.value
+        return acc
+      }, {} as Record<string, string>)
+
+      const rate = parseInt(settingsMap.rate_per_entry) || 500
+      const bonus = parseInt(settingsMap.daily_bonus) || 50000
+
+      // Group entries by user and count unique WIB dates
+      const userDates = new Map<string, Set<string>>()
+      ;(entriesData || []).forEach(entry => {
+        const user = entry.created_by!
+        const existing = userMap.get(user) || { entries: 0, earnings: 0 }
+        existing.entries += 1
+        userMap.set(user, existing)
+
+        // Track unique WIB dates for daily bonus
+        const d = new Date(entry.created_at || '')
+        const wibMs = d.getTime() + 7 * 60 * 60 * 1000
+        const wibDate = new Date(wibMs).toISOString().split('T')[0]
+        if (!userDates.has(user)) userDates.set(user, new Set())
+        userDates.get(user)!.add(wibDate)
+      })
+
+      // Calculate earnings per user
+      userMap.forEach((stats, username) => {
+        const days = userDates.get(username)?.size || 1
+        stats.earnings = (stats.entries * rate) + (days * bonus)
+      })
+
+      // Sort by entries desc and assign ranks
+      const sorted = Array.from(userMap.entries())
+        .sort((a, b) => b[1].entries - a[1].entries)
+        .slice(0, limit)
+
+      // Get total_entries for level calculation
+      const usernames = sorted.map(([u]) => u)
+      const { data: statsData } = await supabaseAdmin
+        .from('user_statistics')
+        .select('username, total_entries')
+        .in('username', usernames)
+
+      const statsMap = new Map((statsData || []).map(s => [s.username, s.total_entries || 0]))
+
+      const leaderboard = sorted.map(([username, stats], index) => ({
+        rank: index + 1,
+        username,
+        entries: stats.entries,
+        earnings: stats.earnings,
+        level: getUserLevel(statsMap.get(username) || 0).name,
+      }))
+
+      // Current user stats for this 12h period
+      const currentUserEntries = userMap.get(currentUsername)
+      const currentUserRank = sorted.findIndex(([u]) => u === currentUsername) + 1
+
+      const { data: userStat } = await supabaseAdmin
+        .from('user_statistics')
+        .select('total_entries')
+        .eq('username', currentUsername)
+        .single()
+
+      const currentUserStats = {
+        rank: currentUserRank || null,
+        username: currentUsername,
+        entries: currentUserEntries?.entries || 0,
+        earnings: currentUserEntries?.earnings || 0,
+        level: getUserLevel(userStat?.total_entries || 0).name,
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          leaderboard,
+          currentUser: currentUserStats,
+        },
+      })
+    } else if (type === 'daily') {
       // Try to use database function for daily leaderboard (OPTIMIZED!)
       let leaderboardData: any[] = []
 
