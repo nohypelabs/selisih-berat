@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Sparkles, Palette, Layout, Navigation, Image as ImageIcon,
-  MapPin, Shield, BarChart3, ChevronRight, Clock
+  MapPin, Shield, BarChart3, ChevronRight, Clock, Smartphone,
+  AlertTriangle, RefreshCw, Zap, TrendingUp
 } from 'lucide-react'
 
 interface ChangeItem {
@@ -15,6 +16,62 @@ interface ChangeItem {
 }
 
 const changes: ChangeItem[] = [
+  // UI/UX Polish — Latest
+  {
+    icon: <AlertTriangle className="w-4 h-4" />,
+    title: 'Confirmation Modal',
+    description: 'Native alert() dan confirm() diganti modal cantik dengan framer-motion. Ada 3 variant: danger, warning, info.',
+    category: 'ux'
+  },
+  {
+    icon: <RefreshCw className="w-4 h-4" />,
+    title: 'Error State + Retry',
+    description: 'Semua page sekarang punya error state inline dengan tombol "Coba Lagi". User tidak lagi lihat halaman kosong saat error.',
+    category: 'ux'
+  },
+  {
+    icon: <Smartphone className="w-4 h-4" />,
+    title: 'Pull-to-Refresh',
+    description: 'Tarik ke bawah di mobile untuk refresh data. Ada indikator spinner dan teks "Tarik untuk refresh".',
+    category: 'ux'
+  },
+  {
+    icon: <Zap className="w-4 h-4" />,
+    title: 'Haptic Feedback',
+    description: 'Getaran ringan saat navigasi, submit entry, dan notifikasi. Membuat app terasa lebih responsif di mobile.',
+    category: 'ux'
+  },
+  {
+    icon: <TrendingUp className="w-4 h-4" />,
+    title: 'Count-Up Animation',
+    description: 'Angka statistik di dashboard animasi naik dari 0 saat pertama kali dimuat.',
+    category: 'ui'
+  },
+  {
+    icon: <Palette className="w-4 h-4" />,
+    title: 'Gradient Accent Header',
+    description: 'Header dashboard dengan gradient subtle dari primary ke hijau, plus decorative orb.',
+    category: 'ui'
+  },
+  {
+    icon: <Layout className="w-4 h-4" />,
+    title: 'Shimmer Skeleton',
+    description: 'Loading skeleton sekarang pakai efek shimmer gradient yang lebih smooth dari pulse biasa.',
+    category: 'ui'
+  },
+  {
+    icon: <Clock className="w-4 h-4" />,
+    title: '12 Jam Period Reset',
+    description: 'Total earnings direset tiap 12 jam (06:00 & 18:00 WIB). Default period di dashboard berubah ke "12 Jam".',
+    category: 'feature'
+  },
+  {
+    icon: <Navigation className="w-4 h-4" />,
+    title: 'Page Transition',
+    description: 'Animasi fade + slide saat pindah halaman. Berlaku untuk sidebar, bottom nav, dan link.',
+    category: 'ui'
+  },
+
   // UI/UX Updates
   {
     icon: <Navigation className="w-4 h-4" />,
