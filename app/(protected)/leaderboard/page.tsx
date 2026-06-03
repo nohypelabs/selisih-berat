@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { ErrorState } from '@/components/ui/error-state'
 
 type LeaderboardType = 'daily' | 'alltime'
 
@@ -24,6 +25,7 @@ export default function LeaderboardPage() {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<LeaderboardType>('alltime')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [data, setData] = useState<LeaderboardData | null>(null)
   const [currentUsername, setCurrentUsername] = useState<string>('')
 
@@ -46,6 +48,7 @@ export default function LeaderboardPage() {
 
   const fetchLeaderboard = async (type: LeaderboardType) => {
     setLoading(true)
+    setError(null)
     try {
       const token = localStorage.getItem('accessToken')
       const response = await fetch(`/api/leaderboard?type=${type}`, {
@@ -59,10 +62,11 @@ export default function LeaderboardPage() {
       if (result.success) {
         setData(result.data)
       } else {
-        console.error('Failed to fetch leaderboard:', result.message)
+        setError(result.message || 'Gagal memuat leaderboard')
       }
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error)
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err)
+      setError('Gagal memuat data. Periksa koneksi internet.')
     } finally {
       setLoading(false)
     }
@@ -154,11 +158,15 @@ export default function LeaderboardPage() {
       <div className="min-h-screen bg-gray-50 py-3 pb-16">
         <div className="container mx-auto px-3 max-w-4xl">
           <h1 className="text-lg font-bold text-gray-900 mb-3">🏆 Leaderboard</h1>
-          <div className="card-mobile text-center py-8">
-            <p className="text-4xl mb-3">😔</p>
-            <p className="text-base font-semibold text-gray-700">No Data Available</p>
-            <p className="text-xs text-gray-500 mt-1">Belum ada data leaderboard</p>
-          </div>
+          {error ? (
+            <ErrorState message={error} onRetry={() => fetchLeaderboard(activeTab)} />
+          ) : (
+            <div className="card-mobile text-center py-8">
+              <p className="text-4xl mb-3">😔</p>
+              <p className="text-base font-semibold text-gray-700">No Data Available</p>
+              <p className="text-xs text-gray-500 mt-1">Belum ada data leaderboard</p>
+            </div>
+          )}
         </div>
       </div>
     )

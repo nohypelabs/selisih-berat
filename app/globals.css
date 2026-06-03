@@ -270,6 +270,33 @@
   @apply animate-pulse bg-gray-200 rounded;
 }
 
+/* Shimmer animation — smoother skeleton */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Fade-in stagger for lists */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+  opacity: 0;
+}
+
 /* Toast animations (slide from right) */
 @keyframes toastEnter {
   from {

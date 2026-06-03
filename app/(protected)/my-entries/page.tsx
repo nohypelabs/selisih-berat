@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { EntriesTable } from '@/components/tables/entries-table'
+import { ErrorState } from '@/components/ui/error-state'
 import type { Entry } from '@/lib/types/entry'
 import {
   FileText, Filter, Search, Calendar, RotateCcw, Info
@@ -14,6 +15,7 @@ export default function MyEntriesPage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [filteredEntries, setFilteredEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -47,6 +49,7 @@ export default function MyEntriesPage() {
   const fetchMyEntries = async () => {
     try {
       setLoading(true)
+      setError(null)
       const token = localStorage.getItem('accessToken')
       const userData = localStorage.getItem('user')
 
@@ -68,10 +71,11 @@ export default function MyEntriesPage() {
       if (data.success) {
         setEntries(data.data || [])
       } else {
-        console.error('Failed to fetch entries:', data.message)
+        setError(data.message || 'Gagal memuat data')
       }
-    } catch (error) {
-      console.error('Fetch error:', error)
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setError('Gagal memuat data. Periksa koneksi internet.')
     } finally {
       setLoading(false)
     }
@@ -210,6 +214,13 @@ export default function MyEntriesPage() {
             Klik row untuk melihat detail entry. Hubungi admin jika perlu mengubah atau menghapus entry.
           </p>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-3">
+            <ErrorState message={error} onRetry={fetchMyEntries} />
+          </div>
+        )}
 
         {/* Entries Table */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">

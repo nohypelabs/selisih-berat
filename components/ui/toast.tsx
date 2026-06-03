@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
+import { haptics } from '@/lib/utils/haptics'
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading'
 
@@ -39,6 +40,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       }
       return updated
     })
+
+    // Haptic feedback based on toast type
+    if (type === 'success') haptics.success()
+    else if (type === 'error') haptics.error()
+    else if (type === 'warning') haptics.medium()
+    else haptics.light()
 
     // Auto remove after duration (unless it's a loading toast)
     if (type !== 'loading' && duration > 0) {

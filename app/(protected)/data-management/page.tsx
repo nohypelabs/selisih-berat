@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { EntriesTable } from '@/components/tables/entries-table'
+import { ErrorState } from '@/components/ui/error-state'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
+import { useToast } from '@/components/ui/toast'
 import { exportToExcel, exportToCSV, generateExportFilename } from '@/lib/utils/export'
 import type { Entry } from '@/lib/types/entry'
 import type { ExportEntry } from '@/lib/utils/export'
@@ -13,13 +16,25 @@ import {
 
 export default function DataManagementPage() {
   const router = useRouter()
+  const { showToast } = useToast()
   const [user, setUser] = useState<any>(null)
   const [entries, setEntries] = useState<Entry[]>([])
   const [filteredEntries, setFilteredEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set())
   const [bulkActionLoading, setBulkActionLoading] = useState(false)
+
+  // Confirm modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean
+    title: string
+    message: string
+    variant: 'danger' | 'warning' | 'info'
+    confirmText: string
+    onConfirm: () => Promise<void>
+  }>({ isOpen: false, title: '', message: '', variant: 'danger', confirmText: 'Konfirmasi', onConfirm: async () => {} })
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('')
@@ -59,6 +74,7 @@ export default function DataManagementPage() {
   const fetchEntries = async () => {
     try {
       setLoading(true)
+      setError(null)
       const token = localStorage.getItem('accessToken')
 
       // Build query params
@@ -74,10 +90,11 @@ export default function DataManagementPage() {
       if (data.success) {
         setEntries(data.data || [])
       } else {
-        console.error('Failed to fetch entries:', data.message)
+        setError(data.message || 'Gagal memuat data')
       }
-    } catch (error) {
-      console.error('Fetch error:', error)
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setError('Gagal memuat data. Periksa koneksi internet.')
     } finally {
       setLoading(false)
     }
@@ -126,27 +143,33 @@ export default function DataManagementPage() {
   }
 
   const handleDelete = async (id: number) => {
-    try {
-      const token = localStorage.getItem('accessToken')
-
-      const response = await fetch(`/api/entries/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        // Remove from local state
-        setEntries(entries.filter((e) => e.id !== id))
-        alert('Entry berhasil dihapus!')
-      } else {
-        alert(`Gagal menghapus entry: ${data.message}`)
-      }
-    } catch (error) {
-      console.error('Delete error:', error)
-      alert('Terjadi kesalahan saat menghapus entry')
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: 'Hapus Entry',
+      message: 'Yakin ingin menghapus entry ini? Tindakan tidak dapat dibatalkan.',
+      variant: 'danger',
+      confirmText: 'Hapus',
+      onConfirm: async () => {
+        try {
+          const token = localStorage.getItem('accessToken')
+          const response = await fetch(`/api/entries/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+          })
+          const data = await response.json()
+          if (data.success) {
+            setEntries(entries.filter((e) => e.id !== id))
+            showToast('Entry berhasil dihapus', 'success')
+          } else {
+            showToast(data.message || 'Gagal menghapus entry', 'error')
+          }
+        } catch (err) {
+          console.error('Delete error:', err)
+          showToast('Terjadi kesalahan saat menghapus entry', 'error')
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+      },
+    })
   }
 
   const handleExportExcel = async () => {
@@ -168,10 +191,10 @@ export default function DataManagementPage() {
       }))
 
       await exportToExcel(exportData, generateExportFilename('entries', 'xlsx'))
-      alert('Data berhasil diexport ke Excel!')
+      showToast('Data berhasil diexport ke Excel', 'success')
     } catch (error) {
       console.error('Export error:', error)
-      alert('Gagal export data ke Excel')
+      showToast('Gagal export data ke Excel', 'error')
     } finally {
       setExporting(false)
     }
@@ -196,10 +219,10 @@ export default function DataManagementPage() {
       }))
 
       await exportToCSV(exportData, generateExportFilename('entries', 'csv'))
-      alert('Data berhasil diexport ke CSV!')
+      showToast('Data berhasil diexport ke CSV', 'success')
     } catch (error) {
       console.error('Export error:', error)
-      alert('Gagal export data ke CSV')
+      showToast('Gagal export data ke CSV', 'error')
     } finally {
       setExporting(false)
     }
@@ -214,87 +237,93 @@ export default function DataManagementPage() {
 
   const handleBulkUpdate = async (status: 'approved' | 'rejected' | 'pending') => {
     if (selectedEntries.size === 0) {
-      alert('Pilih minimal 1 entry untuk bulk update')
+      showToast('Pilih minimal 1 entry untuk bulk update', 'warning')
       return
     }
 
-    if (!confirm(`Yakin ingin mengubah ${selectedEntries.size} entries menjadi ${status}?`)) {
-      return
-    }
-
-    try {
-      setBulkActionLoading(true)
-      const token = localStorage.getItem('accessToken')
-
-      const response = await fetch('/api/entries/bulk-update', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ids: Array.from(selectedEntries),
-          status
-        })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        alert(`Berhasil update ${selectedEntries.size} entries!`)
-        setSelectedEntries(new Set())
-        fetchEntries() // Refresh data
-      } else {
-        alert(`Gagal update entries: ${data.message}`)
-      }
-    } catch (error) {
-      console.error('Bulk update error:', error)
-      alert('Terjadi kesalahan saat bulk update')
-    } finally {
-      setBulkActionLoading(false)
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: `Update ${selectedEntries.size} Entries`,
+      message: `Yakin ingin mengubah ${selectedEntries.size} entries menjadi ${status}?`,
+      variant: status === 'rejected' ? 'warning' : 'info',
+      confirmText: 'Update',
+      onConfirm: async () => {
+        try {
+          setBulkActionLoading(true)
+          const token = localStorage.getItem('accessToken')
+          const response = await fetch('/api/entries/bulk-update', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ids: Array.from(selectedEntries),
+              status
+            })
+          })
+          const data = await response.json()
+          if (data.success) {
+            showToast(`Berhasil update ${selectedEntries.size} entries`, 'success')
+            setSelectedEntries(new Set())
+            fetchEntries()
+          } else {
+            showToast(data.message || 'Gagal update entries', 'error')
+          }
+        } catch (err) {
+          console.error('Bulk update error:', err)
+          showToast('Terjadi kesalahan saat bulk update', 'error')
+        } finally {
+          setBulkActionLoading(false)
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+      },
+    })
   }
 
   const handleBulkDelete = async () => {
     if (selectedEntries.size === 0) {
-      alert('Pilih minimal 1 entry untuk bulk delete')
+      showToast('Pilih minimal 1 entry untuk bulk delete', 'warning')
       return
     }
 
-    if (!confirm(`PERINGATAN: Yakin ingin menghapus ${selectedEntries.size} entries? Tindakan ini tidak dapat dibatalkan!`)) {
-      return
-    }
-
-    try {
-      setBulkActionLoading(true)
-      const token = localStorage.getItem('accessToken')
-
-      const response = await fetch('/api/entries/bulk-delete', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          ids: Array.from(selectedEntries)
-        })
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        alert(`Berhasil menghapus ${selectedEntries.size} entries!`)
-        setSelectedEntries(new Set())
-        fetchEntries() // Refresh data
-      } else {
-        alert(`Gagal menghapus entries: ${data.message}`)
-      }
-    } catch (error) {
-      console.error('Bulk delete error:', error)
-      alert('Terjadi kesalahan saat bulk delete')
-    } finally {
-      setBulkActionLoading(false)
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: `Hapus ${selectedEntries.size} Entries`,
+      message: `PERINGATAN: Yakin ingin menghapus ${selectedEntries.size} entries? Tindakan ini tidak dapat dibatalkan!`,
+      variant: 'danger',
+      confirmText: 'Hapus Semua',
+      onConfirm: async () => {
+        try {
+          setBulkActionLoading(true)
+          const token = localStorage.getItem('accessToken')
+          const response = await fetch('/api/entries/bulk-delete', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ids: Array.from(selectedEntries)
+            })
+          })
+          const data = await response.json()
+          if (data.success) {
+            showToast(`Berhasil menghapus ${selectedEntries.size} entries`, 'success')
+            setSelectedEntries(new Set())
+            fetchEntries()
+          } else {
+            showToast(data.message || 'Gagal menghapus entries', 'error')
+          }
+        } catch (err) {
+          console.error('Bulk delete error:', err)
+          showToast('Terjadi kesalahan saat bulk delete', 'error')
+        } finally {
+          setBulkActionLoading(false)
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }))
+      },
+    })
   }
 
   if (!user || user.role !== 'admin') {
@@ -321,6 +350,13 @@ export default function DataManagementPage() {
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">Kelola dan export data entry</p>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="mb-3">
+            <ErrorState message={error} onRetry={fetchEntries} />
+          </div>
+        )}
 
         {/* Compact Filter Bar */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-3 mb-3">
@@ -463,6 +499,18 @@ export default function DataManagementPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        variant={confirmModal.variant}
+        confirmText={confirmModal.confirmText}
+        loading={bulkActionLoading}
+      />
     </div>
   )
 }

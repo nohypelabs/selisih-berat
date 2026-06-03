@@ -6,6 +6,7 @@ import { LocationDisplay } from '@/components/entry/location-display'
 import { BarcodeScanner } from '@/components/entry/barcode-scanner'
 import { PhotoUpload } from '@/components/entry/photo-upload'
 import { useToast } from '@/components/ui/toast'
+import { haptics } from '@/lib/utils/haptics'
 import { calculateSelisih } from '@/lib/utils/helpers'
 import { formatRupiah } from '@/lib/utils/earnings'
 import { Plus, ScanBarcode, User, CheckCircle, AlertTriangle, XCircle, Coins, Loader2, Check, Camera, Lightbulb } from 'lucide-react'
@@ -111,6 +112,7 @@ export default function EntryPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    haptics.medium()
 
     if (!formData.foto_url_1) {
       showToast('Foto 1 wajib diisi', 'error')

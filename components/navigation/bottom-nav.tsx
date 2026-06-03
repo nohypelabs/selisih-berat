@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { BarChart3, Plus, Database, FileText, User, Camera, ScanBarcode } from 'lucide-react'
 import { ScannerModal } from '@/components/navigation/scanner-modal'
+import { haptics } from '@/lib/utils/haptics'
 
 interface NavItem {
   href: string
@@ -50,6 +51,7 @@ export function BottomNav({ userRole }: { userRole: string }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => haptics.light()}
               className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-all duration-200 ${
                 pathname === item.href
                   ? 'text-primary-600'
@@ -77,6 +79,7 @@ export function BottomNav({ userRole }: { userRole: string }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => haptics.light()}
               className={`flex flex-col items-center justify-center flex-1 py-1.5 transition-all duration-200 ${
                 pathname === item.href
                   ? 'text-primary-600'

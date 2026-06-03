@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { EarningsCard } from '@/components/earnings/earnings-card'
+import { ErrorState } from '@/components/ui/error-state'
+import { CountUp } from '@/components/ui/count-up'
 import { formatDate, formatNumber } from '@/lib/utils/helpers'
 import { Package, Camera, Clock, Scale, RefreshCw, FileText } from 'lucide-react'
 import type { EntryStats } from '@/lib/types/entry'
@@ -14,6 +16,7 @@ export default function DashboardPage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [username, setUsername] = useState<string>('')
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function DashboardPage() {
   const fetchData = async (showRefreshing = false) => {
     try {
       if (showRefreshing) setRefreshing(true)
+      setError(null)
 
       const token = localStorage.getItem('accessToken')
 
@@ -61,8 +65,9 @@ export default function DashboardPage() {
       if (entriesData.success) {
         setEntries(entriesData.data || [])
       }
-    } catch (error) {
-      console.error('Fetch error:', error)
+    } catch (err) {
+      console.error('Fetch error:', err)
+      setError('Gagal memuat data. Periksa koneksi internet.')
     } finally {
       setLoading(false)
       if (showRefreshing) setRefreshing(false)
@@ -75,10 +80,59 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-3 border-primary-200 border-t-primary-600 animate-spin" />
-          <p className="text-xs text-gray-400">Memuat dashboard...</p>
+      <div className="min-h-screen bg-gray-50 py-3 pb-24">
+        <div className="container mx-auto px-3 max-w-4xl">
+          {/* Header skeleton */}
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <div className="h-5 w-32 animate-shimmer rounded-md mb-1.5" />
+              <div className="h-3 w-40 animate-shimmer rounded-md" />
+            </div>
+            <div className="w-9 h-9 animate-shimmer rounded-xl" />
+          </div>
+          {/* Stats skeleton */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl border border-gray-100 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 animate-shimmer rounded-lg" />
+                  <div className="h-3 w-16 animate-shimmer rounded-md" />
+                </div>
+                <div className="h-6 w-20 animate-shimmer rounded-md mb-1" />
+                <div className="h-2 w-14 animate-shimmer rounded-md" />
+              </div>
+            ))}
+          </div>
+          {/* Earnings skeleton */}
+          <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
+            <div className="h-4 w-24 animate-shimmer rounded-md mb-3" />
+            <div className="h-7 w-32 animate-shimmer rounded-md mb-2" />
+            <div className="h-3 w-40 animate-shimmer rounded-md" />
+          </div>
+          {/* List skeleton */}
+          <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+            <div className="px-4 py-3 border-b border-gray-50">
+              <div className="h-4 w-28 animate-shimmer rounded-md" />
+            </div>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="px-4 py-3 border-b border-gray-50">
+                <div className="flex items-start justify-between mb-1.5">
+                  <div>
+                    <div className="h-3 w-24 animate-shimmer rounded-md mb-1" />
+                    <div className="h-2 w-32 animate-shimmer rounded-md" />
+                  </div>
+                  <div className="h-4 w-16 animate-shimmer rounded-full" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-3">
+                    <div className="h-2 w-20 animate-shimmer rounded-md" />
+                    <div className="h-2 w-20 animate-shimmer rounded-md" />
+                  </div>
+                  <div className="h-3 w-16 animate-shimmer rounded-md" />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -88,22 +142,33 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-50 py-3 pb-24">
       <div className="container mx-auto px-3 max-w-4xl">
 
-        {/* ─── Header ─── */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
-            <p className="text-[10px] text-gray-400">
-              {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-            </p>
+        {/* ─── Header with gradient accent ─── */}
+        <div className="relative mb-4 rounded-2xl bg-gradient-to-br from-primary-50 via-white to-green-50 border border-primary-100/50 p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-bold text-gray-900">Dashboard</h1>
+              <p className="text-xs text-gray-500">
+                {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/80 border border-gray-200 hover:bg-white active:scale-95 transition-all disabled:opacity-50 shadow-sm"
+            >
+              <RefreshCw className={`w-4 h-4 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="w-9 h-9 flex items-center justify-center rounded-xl bg-white border border-gray-200 hover:bg-gray-50 active:scale-95 transition-all disabled:opacity-50 shadow-sm"
-          >
-            <RefreshCw className={`w-4 h-4 text-gray-600 ${refreshing ? 'animate-spin' : ''}`} />
-          </button>
+          {/* Decorative gradient orb */}
+          <div className="absolute -top-8 -right-8 w-24 h-24 bg-primary-200/20 rounded-full blur-2xl pointer-events-none" />
         </div>
+
+        {/* ─── Error State ─── */}
+        {error && (
+          <div className="mb-4">
+            <ErrorState message={error} onRetry={() => fetchData(true)} />
+          </div>
+        )}
 
         {/* ─── Stats Grid ─── */}
         {stats && (
@@ -116,7 +181,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-[10px] font-medium text-gray-500">Total Resi</span>
               </div>
-              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.totalEntries)}</p>
+              <p className="text-xl font-bold text-gray-900"><CountUp value={stats.totalEntries} /></p>
               <p className="text-[10px] text-gray-400 mt-0.5">All time</p>
             </div>
 
@@ -128,7 +193,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-[10px] font-medium text-gray-500">Total Foto</span>
               </div>
-              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.totalPhotos)}</p>
+              <p className="text-xl font-bold text-gray-900"><CountUp value={stats.totalPhotos} /></p>
               <p className="text-[10px] text-gray-400 mt-0.5">Terdokumentasi</p>
             </div>
 
@@ -140,7 +205,7 @@ export default function DashboardPage() {
                 </div>
                 <span className="text-[10px] font-medium text-gray-500">Hari Ini</span>
               </div>
-              <p className="text-xl font-bold text-gray-900">{formatNumber(stats.todayEntries)}</p>
+              <p className="text-xl font-bold text-gray-900"><CountUp value={stats.todayEntries} /></p>
               <p className="text-[10px] text-gray-400 mt-0.5">Entry hari ini</p>
             </div>
 
@@ -182,8 +247,8 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-50">
-              {entries.map((entry) => (
-                <div key={entry.id} className="px-4 py-3 hover:bg-gray-50/50 active:bg-gray-50 transition-colors">
+              {entries.map((entry, index) => (
+                <div key={entry.id} className="px-4 py-3 hover:bg-gray-50/50 active:bg-gray-50 transition-colors animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                   <div className="flex items-start justify-between mb-1.5">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-gray-900 truncate">{entry.nama}</p>
