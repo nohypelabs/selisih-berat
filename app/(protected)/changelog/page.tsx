@@ -57,6 +57,12 @@ const timeline: TimelineEntry[] = [
         description: 'Foto profil tampil di leaderboard, sidebar desktop, dan mobile sidebar. Fallback ke inisial kalau belum upload foto.',
         category: 'ui'
       },
+      {
+        icon: <Trophy className="w-4 h-4" />,
+        title: 'Leaderboard Polish',
+        description: 'Ganti emoji dengan Lucide icons. Earnings lebih prominent dengan font hijau tebal. Tab pakai ikon (Clock, Crown). Badge level dengan ikon. Layout lebih clean.',
+        category: 'ui'
+      },
     ]
   },
   {
