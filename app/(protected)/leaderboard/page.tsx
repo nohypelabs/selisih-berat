@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
 import { authFetch } from '@/lib/utils/api'
 
-type LeaderboardType = '12h' | 'daily' | 'alltime'
+type LeaderboardType = '12h' | 'alltime'
 
 interface LeaderboardEntry {
   rank: number
@@ -185,10 +185,10 @@ export default function LeaderboardPage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1.5 mb-3">
+        <div className="flex gap-2 mb-3">
           <Button
             onClick={() => handleTabChange('12h')}
-            className={`flex-1 text-xs py-2 ${
+            className={`flex-1 text-sm ${
               activeTab === '12h'
                 ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300'
@@ -197,18 +197,8 @@ export default function LeaderboardPage() {
             ⏰ 12 Jam
           </Button>
           <Button
-            onClick={() => handleTabChange('daily')}
-            className={`flex-1 text-xs py-2 ${
-              activeTab === 'daily'
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-700 border border-gray-300'
-            }`}
-          >
-            🌟 Daily
-          </Button>
-          <Button
             onClick={() => handleTabChange('alltime')}
-            className={`flex-1 text-xs py-2 ${
+            className={`flex-1 text-sm ${
               activeTab === 'alltime'
                 ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-300'
@@ -225,7 +215,7 @@ export default function LeaderboardPage() {
               <p className="text-4xl mb-3">📊</p>
               <p className="text-base font-semibold text-gray-700">No Entries Yet</p>
               <p className="text-xs text-gray-500 mt-1">
-                {activeTab === '12h' ? 'Belum ada entries sesi ini' : activeTab === 'daily' ? 'Belum ada entries hari ini' : 'Belum ada entries'}
+                {activeTab === '12h' ? 'Belum ada entries sesi ini' : 'Belum ada entries'}
               </p>
             </div>
           ) : (
@@ -381,10 +371,7 @@ export default function LeaderboardPage() {
               • <strong>12 Jam:</strong> Peringkat sesi aktif (06:00-18:00 / 18:00-06:00 WIB)
             </p>
             <p>
-              • <strong>Daily:</strong> Peringkat entries hari ini
-            </p>
-            <p>
-              • <strong>All Time:</strong> Peringkat total entries
+              • <strong>All Time:</strong> Peringkat total entries sepanjang masa
             </p>
             <p>
               • <strong>Levels:</strong> Beginner (0-99) → Bronze (100-499) → Silver (500-999) → Gold (1000-4999) → Diamond (5000+)
