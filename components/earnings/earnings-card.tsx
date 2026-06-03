@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { formatRupiah, formatNumber, getEarningsColor } from '@/lib/utils/earnings'
+import { authFetch } from '@/lib/utils/api'
 import { DollarSign, TrendingUp } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
@@ -80,18 +81,7 @@ export function EarningsCard({ username, showBreakdown = false, className = '' }
     setError(null)
 
     try {
-      const token = localStorage.getItem('accessToken')
-      if (!token) {
-        setError('Not authenticated')
-        setLoading(false)
-        return
-      }
-
-      const response = await fetch(`/api/earnings/${username}?period=${period}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const response = await authFetch(`/api/earnings/${username}?period=${period}`)
 
       const data = await response.json()
 

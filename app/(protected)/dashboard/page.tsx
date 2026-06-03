@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { EarningsCard } from '@/components/earnings/earnings-card'
 import { ErrorState } from '@/components/ui/error-state'
 import { CountUp } from '@/components/ui/count-up'
+import { authFetch } from '@/lib/utils/api'
 import { formatDate, formatNumber } from '@/lib/utils/helpers'
 import { Package, Camera, Clock, Scale, RefreshCw, FileText } from 'lucide-react'
 import type { EntryStats } from '@/lib/types/entry'
@@ -50,17 +51,13 @@ export default function DashboardPage() {
       if (showRefreshing) setRefreshing(true)
       setError(null)
 
-      const token = localStorage.getItem('accessToken')
-
-      const statsRes = await fetch('/api/entries/stats')
+      const statsRes = await authFetch('/api/entries/stats')
       const statsData = await statsRes.json()
       if (statsData.success) {
         setStats(statsData.data)
       }
 
-      const entriesRes = await fetch('/api/entries?limit=10', {
-        headers: { 'Authorization': `Bearer ${token}` },
-      })
+      const entriesRes = await authFetch('/api/entries?limit=10')
       const entriesData = await entriesRes.json()
       if (entriesData.success) {
         setEntries(entriesData.data || [])

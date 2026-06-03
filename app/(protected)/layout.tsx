@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PullToRefresh } from '@/components/ui/pull-to-refresh'
+import { SessionExpiredModal } from '@/components/ui/session-expired-modal'
+import { setSessionExpiredCallback } from '@/lib/utils/api'
 import { InstallPrompt } from '@/components/ui/install-prompt'
 import { Footer } from '@/components/ui/footer'
 import { BottomNav } from '@/components/navigation/bottom-nav'
@@ -36,6 +38,7 @@ export default function ProtectedLayout({
   const pathname = usePathname()
   const [user, setUser] = useState<any>(null)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isSessionExpired, setIsSessionExpired] = useState(false)
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken')
@@ -46,6 +49,11 @@ export default function ProtectedLayout({
     } else if (userData) {
       setUser(JSON.parse(userData))
     }
+
+    // Register session expired callback
+    setSessionExpiredCallback(() => setIsSessionExpired(true))
+
+    return () => setSessionExpiredCallback(null)
   }, [router])
 
   const handleLogout = () => {
@@ -173,6 +181,17 @@ export default function ProtectedLayout({
 
       {/* Install prompt */}
       <InstallPrompt />
+
+      {/* Session Expired Modal */}
+      <SessionExpiredModal
+        isOpen={isSessionExpired}
+        onLogin={() => {
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('user')
+          router.push('/')
+        }}
+      />
     </div>
   )
 }
