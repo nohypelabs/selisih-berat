@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 import { ToastProvider } from '@/components/ui/toast'
 import { NetworkStatus } from '@/components/ui/network-status'
@@ -61,6 +62,7 @@ export default function RootLayout({
             {children}
           </ToastProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   )
