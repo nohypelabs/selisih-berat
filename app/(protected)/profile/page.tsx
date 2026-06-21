@@ -200,7 +200,7 @@ export default function ProfilePage() {
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
-    router.push('/')
+    router.push('/login')
   }
 
   if (loading) {

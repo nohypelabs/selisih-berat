@@ -68,7 +68,7 @@ export default function ProtectedLayout({
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
-    router.push('/')
+    router.push('/login')
   }
 
   const navItems = [
